@@ -10,7 +10,6 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
@@ -23,11 +22,7 @@ public class P2PFree {
 	
 	public static String XPATH_FREECREATE_HEADER = "//header[@class='title']";
 	
-	public static String XPATH_SETTING_BTN = "//button[@id='setting']";
-	public static String XPATH_EXIT_BTN = "//button[@id='exit']";
 	public static String XPATH_LEAVE_BTN = "//button[@id='btn-leave']";
-	
-	public static String XPATH_SETTING = "//div[@id='device-setting-wrap']";
 	
 	public static String MSG_FREECREATE_HEADER = "회원가입 없이, 시간 제한 없이\n" + "무료 화상회의 바로 시작";
 	
@@ -98,8 +93,10 @@ public class P2PFree {
 		}
 		
 		comm.waitForLoad(driver);
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(CommonValues.XPATH_ROOM_INVITE)));
+		
+		WebDriverWait wait = new WebDriverWait(driver, 20);
+		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
+		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: none;"));
 		
 		roomID = driver.getCurrentUrl().replace(CommonValues.MEETING_URL + CommonValues.ROOM_URL , "");
 
@@ -122,20 +119,18 @@ public class P2PFree {
 	public void inviteFree() throws Exception {
 		String failMsg = "";
 		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
+		driver.findElement(By.xpath(CommonValues.XPATH_INVITE_BTN)).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_ROOM_INVITEINPUT)));
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_ROOM_INVITEINPUT)).click();
 		driver.findElement(By.xpath(CommonValues.XPATH_ROOM_INVITEINPUT)).sendKeys(CommonValues.USERS[0]);
 		driver.findElement(By.xpath(CommonValues.XPATH_ROOM_INVITESUBMIT_BTN)).click();
 		
-		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), CommonValues.TOAST_SENDIVITATION));
-		
-		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
-		
-		if(!msg.contentEquals(CommonValues.TOAST_SENDIVITATION)) {
+		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_SENDIVITATION) == false) {
 			failMsg = "Wrong SendInvitation MSG [Expected]" + CommonValues.TOAST_SENDIVITATION
-					+ " [Actual]" + msg;
+					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
 		}
 		
 		if(!CommonValues.USERS[0].contains(driver.findElement(By.xpath(CommonValues.XPATH_SENTLIST_NAME)).getText())) {
@@ -264,14 +259,9 @@ public class P2PFree {
 		driver.findElement(By.xpath(CommonValues.XPATH_NOTESHARE_INPUT)).sendKeys(CommonValues.USERS[0]);
 		driver.findElement(By.xpath(CommonValues.XPATH_NOTESHARE + "//button")).click();
 		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), CommonValues.TOAST_NOTESHARE));
-
-		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
-		
-		if(!msg.contentEquals(CommonValues.TOAST_NOTESHARE)) {
+		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_NOTESHARE) == false) {
 			failMsg = "Wrong SendNote MSG [Expected]" + CommonValues.TOAST_NOTESHARE
-					+ " [Actual]" + msg;
+					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
 		}
 
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -452,7 +442,7 @@ public class P2PFree {
 	public void Setting() throws Exception {
 		String failMsg = "";
 		
-		driver.findElement(By.xpath(XPATH_SETTING_BTN)).click();
+		driver.findElement(By.xpath(CommonValues.XPATH_SETTING_BTN)).click();
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
@@ -510,8 +500,9 @@ public class P2PFree {
 		
 		comm.waitForLoad(driver);
 		
-		WebDriverWait wait = new WebDriverWait(driver, 20);
-		wait.until(ExpectedConditions.visibilityOfAllElements(driver.findElements(By.xpath("//div[@class='video-wrap']"))));
+		WebDriverWait wait = new WebDriverWait(driver, 30);
+		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='pip-container']")));
 		
 		if (!driver.getCurrentUrl().contentEquals((url))) {
 			failMsg = "1.Attendee can't entered Free Room [Expected]" + url
@@ -528,7 +519,7 @@ public class P2PFree {
 	public void ExitSelect() throws Exception {
 		String failMsg = "";
 		
-		driver.findElement(By.xpath(XPATH_EXIT_BTN)).click();
+		driver.findElement(By.xpath(CommonValues.XPATH_EXIT_BTN)).click();
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));

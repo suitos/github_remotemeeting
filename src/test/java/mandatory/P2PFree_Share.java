@@ -452,6 +452,11 @@ public class P2PFree_Share {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STOPSCREENSHARE
 					+ " [Actual]" + msg;
 		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
 	@AfterClass(alwaysRun = true)

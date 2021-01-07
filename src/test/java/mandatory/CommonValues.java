@@ -37,13 +37,17 @@ public class CommonValues {
 	public static String MEETING_URL = "https://st.remotemeeting.com";
 	
 	public static String ADMEMAIL = "rmrsupadm@gmail.com";
+	public static String PARTNERKR_EMAIL = "rsupkor@rsupport.com";
 	public static String[] USERS = {"rmrsup1@gmail.com"};
 	
 	public static String USERPW = "!Rsupport0";
 	
+	public static String ADMIN_URL = "/rmadmin";
 	public static String KRHOME_URL = "/ko/home";
 	public static String ROOM_URL = "/room/";
 	public static String LOUNGE_URL = "/lounge/room-list";
+	public static String SCHEDULE_URL = "/lounge/schedule";
+	public static String HISTORY_URL = "/lounge/history";
 	public static String KRPROFILE_URL = "/ko/setting/profile";
 	
 	public static String XPATH_HOME_LOGIN_BTN = "//a[@id='login-open-btn']";
@@ -60,7 +64,7 @@ public class CommonValues {
 	
 	public static String XPATH_ROOM_INVITE = "//div[@id='invite-dialog']";
 	public static String XPATH_ROOM_INVITEINPUT = "//input[@id='invite-input']";
-	public static String XPATH_ROOM_INVITESUBMIT_BTN = "//button[@type='submit']";
+	public static String XPATH_ROOM_INVITESUBMIT_BTN = "//button[@class='button round green']";
 	public static String XPATH_ROOM_INVITECLOSE_BTN = "//section[@id='invite-header']/button/i";
 	
 	public static String XPATH_SENTLIST_BTN = "//p[@id='sent-list']";
@@ -72,12 +76,20 @@ public class CommonValues {
 	public static String XPATH_FREECREATE_DIALOG = "//div[@id='dialog']";
 	public static String XPATH_FREECREATESUBMIT_BTN = "//button[@class='cola-btn size-md type-full green submit']";
 
+	public static String XPATH_QUICKSTART_BTN = "//button[@id='btn-gnb-create']";
+	public static String XPATH_QUICKSTARTTITLE_INPUT = "//input[@name='title']";
+	public static String XPATH_QUICKSTARTSTART_BTN = "//button[@class='button round large green']";
+	
 	public static String XPATH_INVITE_BTN = "//button[@id='invite']";
 	public static String XPATH_INVITELIST = "//div[@class='dialog-body']//li";
 	public static String XPATH_INVITELISTCONFIRM_BTN = "//button[@class='button round green close']";
 	
 	public static String XPATH_CAMERA_BTN = "//button[@id='camera']";
 	public static String XPATH_MIC_BTN = "//button[@id='mic']";
+	
+	public static String XPATH_SETTING_BTN = "//button[@id='setting']";
+	
+	public static String XPATH_EXIT_BTN = "//button[@id='exit']";
 	
 	public static String XPATH_TIMELINE = "//div[@id='log-content']";
 	public static String XPATH_TIMELINE_BTN = "//button[@id='btn-timeline']";
@@ -103,13 +115,13 @@ public class CommonValues {
 	public static String TOAST_STARTSCREENSHARE = "화면 공유가 시작 되었습니다.";
 	public static String TOAST_STOPSCREENSHARE = "화면 공유가 종료 되었습니다.";
 	
-
+	public static String ADMINNICKNAME = "자동화기업용관리자";
 	public static String FREENICKNAME = "FREEGUEST";
 	public static String ATTENDEEFREENICKNAME = "FREEATTENDEE";
 	
 	public static String TESTFILE_PATH = System.getProperty("user.dir") + "\\testdata\\";
 	public static String TESTFILE_PATH_MAC = System.getProperty("user.dir") + "/testdata/";
-	public static String TESTFILE_LIST[] = {"doc1.docx", "excel.xlsx", "hwp.hwp", "image.png", "image2.jpg", "image3.gif" ,"pdf.pdf", "ppt.pptx", "text.txt"};
+	public static String TESTFILE_LIST[] = {"doc1.docx", "excel.xlsx", "hwp.hwp", "image.png", "image2.jpg", "image3.gif" ,"pdf.pdf", "ppt.pptx", "textdata.txt"};
 
 	public String roomCode = "";
 	
@@ -150,7 +162,7 @@ public class CommonValues {
 		    //dpi조정
 		    options.addArguments("force-device-scale-factor=0.75");
 		    options.addArguments("high-dpi-support=0.75");
-		    
+		   
 		    if(presenter) {
 		    	options.addArguments("auto-select-desktop-capture-source=Entire screen");
 
@@ -171,7 +183,7 @@ public class CommonValues {
 				options.setExperimentalOption("prefs", prefs);
 				
 		    }
-		    driver = new ChromeDriver(options);
+	        driver = new ChromeDriver(options);
 		} else if (browser.contains("Edge")) {
 			EdgeOptions options = new EdgeOptions();
 
@@ -344,8 +356,19 @@ public class CommonValues {
 		}
 	}
 	
-	public boolean isAlertPresent(WebDriver driver) 
-	{ 
+	public boolean GetAndCheckToastMsg(WebDriver driver, String ExpectedMsg) {
+		WebDriverWait waitMSG = new WebDriverWait(driver, 10);
+		waitMSG.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), ExpectedMsg));
+
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		
+		if(!msg.contentEquals(ExpectedMsg)) {
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean isAlertPresent(WebDriver driver) {
 	    try 
 	    { 
 	    	Alert alert =driver.switchTo().alert();

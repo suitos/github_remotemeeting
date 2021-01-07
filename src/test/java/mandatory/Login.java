@@ -39,7 +39,7 @@ public class Login {
 	@Test(priority = 1)
 	public void loginseminar() throws Exception {
 		
-		driver.findElement(By.xpath(CommonValues.XPATH__HOME_LOGIN_BTN)).click();
+		driver.findElement(By.xpath(CommonValues.XPATH_HOME_LOGIN_BTN)).click();
 	}
 	
 	@AfterClass(alwaysRun = true)
