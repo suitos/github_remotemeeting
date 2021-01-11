@@ -41,7 +41,7 @@ public class GoogleSheets {
         MANDATORY, ADMIN, WEB, PARTNERS
     }
     //기본기능 TC sheet
-    private String mandatorysheetId = "15yUpUF57X5oQpsaMB1bdyU8D4vM1NFipg5_QZpZkS9k";
+    private String mandatorysheetId = "1SI3GN-G-JZtLTMj59JHqoLxljruxCsTMitrjy2dlJvA";
     
     //web, admin, partners TC sheet
     private String rmTCsheetId = "1r0x30wJsDTtSCMP0un20stkMtvom-q90l85h87m4EOY";
@@ -58,14 +58,25 @@ public class GoogleSheets {
     		testedSheetID = mandatorysheetId;
     		methodCol = "G";
     		resultCol = "H";
-    		testTab = "TC!";
+    		testTab = "'기본기능(자동화용)'!";
     		
     	} else if(casetype.equalsIgnoreCase(TestCase.ADMIN.name())) {
     		testedSheetID = rmTCsheetId;
     		methodCol = "L";
     		resultCol = "M";
     		testTab = "Admin!";
-    	} 
+    		
+    	} else if(casetype.equalsIgnoreCase(TestCase.WEB.name())) {
+    		testedSheetID = rmTCsheetId;
+    		methodCol = "L";
+    		resultCol = "M";
+    		testTab = "Web!";
+    	} else if(casetype.equalsIgnoreCase(TestCase.PARTNERS.name())) {
+    		testedSheetID = rmTCsheetId;
+    		methodCol = "L";
+    		resultCol = "M";
+    		testTab = "Partner!";
+    	}
     }
     
     /**

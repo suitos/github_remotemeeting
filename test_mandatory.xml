@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+<parameter name="browser" value="Chrome_test"/>
+  <listeners>
+       <listener class-name="mandatory.TestListener"/>
+  </listeners>
+
+  <test name="Ready">
+  <parameter name="pkgname" value="mandatory"/>
+    <classes>
+     <class name="mandatory.StartTesting">
+      <methods>
+        <include name="clearSheet" />
+      </methods>
+    </class>
+    </classes>
+    
+  </test>  
+  <test name="mandatory.Free">
+    <classes>
+      <class name="mandatory.Free"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="mandatory.P2PFree">
+    <classes>
+      <class name="mandatory.P2PFree"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="mandatory.P2PFree_Share">
+    <classes>
+      <class name="mandatory.P2PFree_Share"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="mandatory.P2PEnterprise">
+    <classes>
+      <class name="mandatory.P2PEnterprise"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="mandatory.P2PEnterprise_Mode">
+    <classes>
+      <class name="mandatory.P2PEnterprise_Mode"/>
+    </classes>
+  </test> <!-- Test -->
+  
+</suite> <!-- Suite -->
