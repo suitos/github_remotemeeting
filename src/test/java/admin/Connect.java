@@ -2,10 +2,15 @@ package admin;
 
 import static org.testng.Assert.fail;
 
+import java.io.File;
 import java.util.ArrayList;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -45,11 +50,12 @@ public class Connect {
 	public static String XPATH_DASHBOARD_COUNT_TITLE  = "//article[@id='compareCount']/div[@class='panel-title']";
 	
 	public static String XPATH_MODAL_BODY  = "//div[@class='modal-body']";
+	public static String XPATH_MODAL_RESULTBODY  = "//div[@class='result-body modal-body']";
 	public static String XPATH_MODAL_FOOTER_Y  = "//div[@class='modal-footer']/a[1]";
 	public static String XPATH_MODAL_FOOTER_N  = "//div[@class='modal-footer']/a[2]";
 	public static String XPATH_PANEL_HEADER  = "//div[@class='panel-header']";
 	
-	public static String XPATH_ADMIN_PROFILE_INFO_BTN  = "//div[@id='profile-info']";
+	public static String XPATH_ADMIN_PROFILE_INFO_BTN  = "//div[@id='profile-info']/div[@id='user-image-mini']";
 	public static String XPATH_ADMIN_LOGOUT_BTN = "//a[@class='btn-logout']";
 	
 	public static String XPATH_ADMIN_LOGIN_EMAIL = "//input[@id='j_username']";
@@ -644,15 +650,16 @@ public class Connect {
 
 	public void logoutAdmin(WebDriver wd) {
 		
-		if(!wd.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + CommonValues.ADMIN_URL)) {
+		if(!wd.getCurrentUrl().contains(CommonValues.MEETING_URL)) {
 			wd.get(CommonValues.MEETING_URL + CommonValues.ADMIN_URL);
 		}
 		
 		try {
-			wd.findElement(By.xpath(XPATH_ADMIN_PROFILE_INFO_BTN)).click();
 			WebDriverWait wait = new WebDriverWait(wd, 10);
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ADMIN_PROFILE_INFO_BTN)));
+			wd.findElement(By.xpath(XPATH_ADMIN_PROFILE_INFO_BTN)).click();
 			
-			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ADMIN_LOGOUT_BTN)));
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_LOGOUT_BTN)));
 			wd.findElement(By.xpath(XPATH_ADMIN_LOGOUT_BTN)).click();
 			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_LOGIN_EMAIL)));
@@ -664,6 +671,8 @@ public class Connect {
 	}
 	
 	public void loginAdmin(WebDriver wd, String user, String pw) {
+		WebDriverWait wait = new WebDriverWait(wd, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_LOGIN_EMAIL)));
 		
 		wd.findElement(By.xpath(XPATH_ADMIN_LOGIN_EMAIL)).clear();
 		wd.findElement(By.xpath(XPATH_ADMIN_LOGIN_EMAIL)).sendKeys(user);
@@ -671,13 +680,26 @@ public class Connect {
 		wd.findElement(By.xpath(XPATH_ADMIN_LOGIN_PW)).sendKeys(pw);
 		wd.findElement(By.xpath(XPATH_ADMIN_LOGIN_BTN)).click();
 		
-		WebDriverWait wait = new WebDriverWait(wd, 10);
 		try {
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_PROFILE_INFO_BTN)));
 		} catch (Exception e) {
 			System.out.println("login error" + e.getMessage());
+			
+			if(isElementPresent_wd(wd, By.xpath(XPATH_MODAL_FOOTER_Y))) {
+				wd.findElement(By.xpath(XPATH_MODAL_FOOTER_Y)).click();
+				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_PROFILE_INFO_BTN)));
+			}
 		}
 
+	}
+	
+	private boolean isElementPresent_wd(WebDriver wd, By by) {
+		try {
+			wd.findElement(by);
+			return true;
+		} catch (NoSuchElementException e) {
+			return false;
+		}
 	}
 
 	@AfterClass(alwaysRun = true)

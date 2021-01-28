@@ -111,6 +111,8 @@ public class Users2 {
 
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", driver);
+		
+		driver.get(CommonValues.MEETING_URL + CommonValues.ADMIN_URL);
 
 	}
 	
@@ -959,7 +961,7 @@ public class Users2 {
 		boolean isDeleted = false;
 		
 		WebDriverWait wait = new WebDriverWait(wd, 10);
-		if(!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + Users.URL_USERS)) {
+		if(!wd.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + Users.URL_USERS)) {
 			wd.get(CommonValues.MEETING_URL + Users.URL_USERS);
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ADMIN_LIST_SEARCHBOX)));
 		}
@@ -975,7 +977,7 @@ public class Users2 {
 					wd.findElement(By.xpath(XPATH_USERVIEW_DELETE_BTN)).click();
 					wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_MODAL_BODY)));
 					wd.findElement(By.xpath(Users.XPATH_MODAL_FOOTER_BTN_Y)).click();
-					wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_MODAL_NOHEADER)));
+					wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='result-body modal-body']")));
 					wd.findElement(By.xpath(Users.XPATH_MODAL_FOOTER_BTN_Y)).click();
 					
 					wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Users.XPATH_ADMIN_VIEWLIST)));

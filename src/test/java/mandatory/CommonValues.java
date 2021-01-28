@@ -14,6 +14,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -33,12 +35,28 @@ public class CommonValues {
 	public static final String WEB_FIREFOX_DRIVER_LINUX_PATH = "/tools/webdriver/geckodriver";
 	
 	public static boolean FOR_JENKINS = true;
+	public static boolean SPREADSHEET = false;
 	
 	public static String MEETING_URL = "https://st.remotemeeting.com";
 	
 	public static String ADMEMAIL = "rmrsupadm@gmail.com";
+	public static String ADMEMAIL2 = "rmrsup2@gmail.com";
 	public static String PARTNERKR_EMAIL = "rsupkor@rsupport.com";
-	public static String[] USERS = {"rmrsup1@gmail.com"};
+	public static String PARTNERTEST_EMAIL = "rmrsuppartner@gmail.com";
+	public static String[] USERS = {"rmrsup1@gmail.com", "rmrsup3@gmail.com", "rmrsup4@gmail.com"};
+	public static String ADM_ID = "rsrsup1@gmail.com";
+	public static String USER_NOLIC = "rsrsup2@gmail.com";//라이선스 없음
+	
+	//파트너사명 : 자동화테스트용
+	//관리자 : rmrsuppartner@gmail.com
+	
+	//고객사명 : 자동화테스트용
+	//관리자 : rmrsupadm@gmail.com
+	//사용자 : rmrsup1@gmail.com
+	
+	//고각사명 : autotest
+	//관리자 : rmrsup2@gmail.com
+	//사용자 : rmrsup3@gmail.com , rmrsup4@gmail.com
 	
 	public static String USERPW = "!Rsupport0";
 	
@@ -55,6 +73,9 @@ public class CommonValues {
 	public static String XPATH_HOME_LOGIN_PW = "//input[@name='j_password']";
 	public static String XPATH_HOME_LOGIN_SUBMIT = "//button[@class='cola-btn size-sm type-full green']";
 	
+	public static String XPATH_GNB_USERBOX_BTN = "//div[@id='gnb-user']/button";
+	public static String XPATH_GNB_USERBOX_DROPDOWN_LOGOUT = "//div[@id='gnb-user']/ul[@class='dropdown']/li[2]";
+	
 	public static String XPATH_FOOTER_LANG_BTN = "//div[@id='language-selection']";
 	public static String XPATH_FOOTER_LANG_KO = "//ul[@class='lang-list']/li[@class='lang-item ko']";
 	public static String XPATH_FOOTER_LANG_JA = "//ul[@class='lang-list']/li[@class='lang-item ja']";
@@ -70,7 +91,7 @@ public class CommonValues {
 	public static String XPATH_SENTLIST_BTN = "//p[@id='sent-list']";
 	public static String XPATH_SENTLIST_NAME = "//span[@id='names']";
 	
-	public static String XPATH_FREECREATE_BTN = "//button[@class='cola-btn active']";
+	public static String XPATH_FREECREATE_BTN = "//section[@id='gateway']//div[2]/div/button";
 	public static String XPATH_FREECREATE_INPUT = "//input[@id='nickname']";
 	public static String XPATH_FREECREATEATTEND_BTN = "//section[@id='gateway']//form/button";
 	public static String XPATH_FREECREATE_DIALOG = "//div[@id='dialog']";
@@ -107,6 +128,13 @@ public class CommonValues {
 	
 	public static String XPATH_SHARESCREEN_BTN = "//button[@id='screen-share']";
 	public static String XPATH_STOPSHARESCREEN_BTN = "//button[@class='screen-share-close button round green large']";
+	
+	public static String XPATH_ROOM_DOCSHARE_BTN = "//button[@id='doc-share']";
+	public static String XPATH_ROOM_DOCUPLOAD_BTN = "//a[@id='doc-upload-btn']";
+	public static String XPATH_ROOM_DOCUPLOAD_INPUT = "//input[@id='doc-upload-input']";
+	public static String XPATH_ROOM_DOCCONTENT_VIEW = "//article[@id='document-content']";
+	public static String XPATH_ROOM_SCREENSHARE_VIEWDESC = "//span[@id='screen-motion']";
+	public static String XPATH_RECORDING_BTN = "//button[@id='recording']";
 	
 	public static String XPATH_TOAST = "//div[@id='msg-box']/p";
 	
@@ -345,14 +373,38 @@ public class CommonValues {
 		driver.findElement(By.xpath(XPATH_HOME_LOGIN_PW)).sendKeys(PW);
 		
 		driver.findElement(By.xpath(XPATH_HOME_LOGIN_SUBMIT)).click();
-		waitForLoad(driver);
 		
+		if(isAlertPresent2(driver) == false) {
+			WebDriverWait wait = new WebDriverWait(driver, 10);
+			try {
+				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='channel-wrap']")));
+			} catch (Exception e) {
+				if(isElementPresent(driver, By.xpath("//div[@class='button-box']/a"))) {
+					driver.findElement(By.xpath("//div[@class='button-box']/a")).click();
+				}
+			}
+			
+			if (!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + CommonValues.LOUNGE_URL)) {
+				Exception e = new Exception("Wrong URL :" + driver.getCurrentUrl());
+				throw e;
+			}
+		} 
+	}
+	
+	public void logout(WebDriver driver) throws Exception {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='channel-wrap']")));
-		
-		if (!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + CommonValues.LOUNGE_URL)) {
-			Exception e = new Exception("Wrong URL :" + driver.getCurrentUrl());
-			throw e;
+		if(driver.getCurrentUrl().contains("/home")) {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='header-item gnb-user']/button")));
+			driver.findElement(By.xpath("//div[@class='header-item gnb-user']/button")).click();
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//ul[@class='menu']/li[4]")));
+			driver.findElement(By.xpath("//ul[@class='menu']/li[4]")).click();;
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_HOME_LOGIN_BTN)));
+		} else {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_GNB_USERBOX_BTN)));
+			driver.findElement(By.xpath(XPATH_GNB_USERBOX_BTN)).click();
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_GNB_USERBOX_DROPDOWN_LOGOUT)));
+			driver.findElement(By.xpath(XPATH_GNB_USERBOX_DROPDOWN_LOGOUT)).click();
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_HOME_LOGIN_BTN)));
 		}
 	}
 	
@@ -380,6 +432,26 @@ public class CommonValues {
 	        return false; 
 	    }   
 	}
+	
+	public boolean isAlertPresent2(WebDriver driver) {
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		try {
+			wait.until(ExpectedConditions.alertIsPresent());
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+	
+	public boolean isElementPresent(WebDriver wd, By by) {
+		try {
+			wd.findElement(by);
+			return true;
+		} catch (NoSuchElementException e) {
+			return false;
+		}
+	}
+
 }
 
 

@@ -36,6 +36,9 @@ import mandatory.CommonValues;
  * 1. 사용자 관리 화면 이동
  * 2. 사용자 관리 - 엑셀 업로드 팝업 확인 / 엑셀양식 다운로드
  * 3. 엑셀파일 업로드에 추가
+ * 4. 사용자관리 - 엑셀추가에 엑셀파일이 아닌 다른 파일 업로드
+ * 5. 사용자관리 - 엑셀 추가 후 팝업에서 취소
+ * 6. 사용자관리 - 엑셀 추가한 후 확인 - 추가한 유저 삭제
  */
 
 public class Users {
@@ -75,6 +78,8 @@ public class Users {
 
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", driver);
+		
+		driver.get(CommonValues.MEETING_URL + CommonValues.ADMIN_URL);
 
 	}
 	
@@ -106,7 +111,7 @@ public class Users {
 		}
 	}
 	
-	@Test(priority = 2, enabled = false)
+	@Test(priority = 2, enabled = true)
 	public void user_excelPopup() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -154,7 +159,7 @@ public class Users {
 		}
 	}
 	
-	@Test(priority = 3, enabled = false)
+	@Test(priority = 3, enabled = true)
 	public void user_excelAdd() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -186,7 +191,7 @@ public class Users {
 		}
 	}
 	
-	@Test(priority = 4, enabled = false)
+	@Test(priority = 4, enabled = true)
 	public void user_excelAddInvalid() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -289,30 +294,54 @@ public class Users {
 		driver.findElement(By.xpath(XPATH_MODAL_UPLOAD_FIELD)).sendKeys(CommonValues.TESTFILE_PATH + userExcelSample);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_MODAL_UPLOAD_TXT)));
 		
-		//upload cancel
+		//upload confirm
 		driver.findElement(By.xpath(XPATH_MODAL_FOOTER_BTN_Y)).click();
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(Connect.XPATH_MODAL_BODY)));
+		driver.findElement(By.xpath("//section[@class='result-success']//div[@class='modal-footer']/button[1]")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-header']")));
+		Thread.sleep(1000);
 		
 		String[][] newList = getListItems(driver);
 		
-		if(!Arrays.deepEquals(oldList, newList)) {
+		if(Arrays.deepEquals(oldList, newList)) {
 			failMsg = failMsg + "\n1.User list items diff";
 			
-			System.out.println("list is no equal");  
+			System.out.println("list is equal");  
+		} else {
+			String[][] excelData = readExcelFile(CommonValues.TESTFILE_PATH + userExcelSample);
+			//delete  추가한 유저 
+
+			Users2 userCtr = new Users2();
+			for (int i = 1; i <= excelData.length; i++) {
+				if(excelData[i][0] == null) break;
+				if(!userCtr.deleteUser(driver, excelData[i][1])) {
+					failMsg = failMsg + "\n2-" + i + ". cannot find added user. user email : " + excelData[i][1];
+				}
+			}
 		}
+		
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e =  new Exception(failMsg);
 	    	throw e;
 		}
 	}
-
-	//사이드 메뉴 선택 사용자관리가 1번 이후 +1
+	
+	//사이드 메뉴 선택 사용자관리가 1번 이후 +1, 0은 대시보드
 	public void selectSideMenu(WebDriver wd, int num) {
+		selectSideMenu(wd, num, 0); 
+	}
+	
+	//사이드 메뉴 선택 사용자관리가 1번 이후 +1, 0은 대시보드
+	public void selectSideMenu(WebDriver wd, int num, int sub) {
 		List<WebElement> menus = wd.findElements(By.xpath(XPATH_ADMIN_SIDEBAR_MENU));
 	
 		if(menus.size() > 0) {
-			menus.get(num).click();
+			if(menus.get(num).getAttribute("class").contains("menu menu-wrap")) {
+				menus.get(num).findElement(By.xpath("./ul[@class='treeview-menu']/li[" + sub + "]")).click();
+			} else {
+				menus.get(num).click();
+			}
 		}
 	}	
 	
@@ -374,15 +403,16 @@ public class Users {
 		DataFormatter formatter = new DataFormatter();
 
 		String[][] data = new String[rowCount][cells];
-		
+	
 		//첫번째 행 포함 가져오기.
 		for (int i = 0; i <  rowCount; i++) {
 			Row row = testDataSheet.getRow(i);
+			if(row == null) break;
 			for (int j = 0; j < cells; j++) {
-				
 				Cell cell = row.getCell(j);
 				String a = formatter.formatCellValue(cell);
-
+				System.out.println("excel test : " + a);  
+				
 				data[i][j] = a;
 			}
 		}

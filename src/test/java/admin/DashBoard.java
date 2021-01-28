@@ -23,9 +23,17 @@ import mandatory.CommonValues;
 
 /* DashBoard
  * 1. 대시보드 월 사용량(미구현)
- * 2. 대시보드 요금제 - 없을때
- * 3. 대시보드 요금제 - Free 일때
+ * 2. 대시보드 요금제 - Free일때
+ * 3. 대시보드 요금제 - 없을때
+ * 4. 대시보드 요금제 - 베이직 요금제
+ * 5. 대시보드 요금제 - ID 요금제
  * 
+ * 10. 대시보드 - 절약비용 타이틀
+ * 11. 대시보드 - 절약비용 툴팁
+ * 12. 대시보드 - 절약거리 타이틀
+ * 13. 대시보드 - 절약거리 툴팁
+ * 14. 대시보드 - 탄소감소량 타이틀
+ * 15. 대시보드 - 탄소 감소량 툴팁
  */
 
 public class DashBoard {
@@ -60,7 +68,8 @@ public class DashBoard {
 	
 	public static String EXPIRED_ADM = "testhyeonkyeong3@gmail.com"; //사용요금제 없는 유저
 	public static String ID_ADM = "id01@rsupport.com"; //id 요금제 사용 유저
-	public static String BASIC_ADM = "tmdalstest06@gmail.com"; //id 요금제 사용 유저
+	public static String BASIC_ADM = "rsrsup8@gmail.com"; //basic 요금제 사용 유저 , rsrsup7 유저
+	public static String PAYTEST_ADM = "rsrsup8@gmail.com"; //basic 요금제 사용 유저 , rsrsup12 유저
 	public static String ID_PW = "111111";
 	
 	public static WebDriver driver;
@@ -76,10 +85,11 @@ public class DashBoard {
 
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", driver);
-
+		
+		driver.get(CommonValues.MEETING_URL + CommonValues.ADMIN_URL);
 	}
 	
-	@Test(priority = 1, enabled = true)
+	@Test(priority = 1, enabled = false)
 	public void dashboardUseage() throws Exception {
 		String failMsg = "";
 		
@@ -116,7 +126,7 @@ public class DashBoard {
 		}
 		
 		String licenseDate = driver.findElement(By.xpath(XPATH_DASHBOARD_LICENSE_DAY)).getText();
-		if(Integer.parseInt(licenseDate) <= 0) {
+		if(Integer.parseInt(licenseDate.replace(",", "")) <= 0) {
 			failMsg = failMsg + "\n2. Remining period [Expected]more than 0"
 					+ " [Actual]" + licenseDate;
 		}
@@ -163,7 +173,7 @@ public class DashBoard {
 			conn.logoutAdmin(driver);
 		}
 		
-		conn.loginAdmin(driver, BASIC_ADM, ID_PW);
+		conn.loginAdmin(driver, BASIC_ADM, CommonValues.USERPW);
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_DASHBOARD_LICENSE_TITLE)));
@@ -195,7 +205,7 @@ public class DashBoard {
 			conn.logoutAdmin(driver);
 		}
 		
-		conn.loginAdmin(driver, ID_ADM, ID_PW);
+		conn.loginAdmin(driver, CommonValues.ADM_ID, CommonValues.USERPW);
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_DASHBOARD_LICENSE_TITLE)));
@@ -207,12 +217,12 @@ public class DashBoard {
 		
 		String payment = driver.findElement(By.xpath(XPATH_DASHBOARD_LICENSE_PAYMETN)).getText();
 		if(!payment.contentEquals("구매 내역")) {
-			failMsg = failMsg + "\n2. payment data [Expected]구매 내역" + MSG_ADMIN_PAYMENT_ID 
+			failMsg = failMsg + "\n2. payment data [Expected]구매 내역" 
 					+ " [Actual]" + payment;
 		}
 		
-		if(!driver.findElement(By.xpath(XPATH_DASHBOARD_LICENSE_ID_DATE)).getText().contentEquals("2021.01.06 ~ 2099.12.31")) {
-			failMsg = failMsg + "\n3. payment data [Expected]2021.01.06 ~ 2099.12.31" 
+		if(!driver.findElement(By.xpath(XPATH_DASHBOARD_LICENSE_ID_DATE)).getText().contentEquals("2021.01.27 ~ 2099.12.31")) {
+			failMsg = failMsg + "\n3. payment data [Expected]2021.01.27 ~ 2099.12.31" 
 					+ " [Actual]" + driver.findElement(By.xpath(XPATH_DASHBOARD_LICENSE_ID_DATE)).getText();
 		}
 		
