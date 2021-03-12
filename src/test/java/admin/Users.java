@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -25,6 +26,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
@@ -39,6 +41,9 @@ import mandatory.CommonValues;
  * 4. 사용자관리 - 엑셀추가에 엑셀파일이 아닌 다른 파일 업로드
  * 5. 사용자관리 - 엑셀 추가 후 팝업에서 취소
  * 6. 사용자관리 - 엑셀 추가한 후 확인 - 추가한 유저 삭제
+ * 10. 사용자관리 - 엑셀 추가 - 필수정보 누락
+ * 11. 사용자관리 - 엑셀 추가 - 기존 유저와 추가할 데이터 중복
+ * 12. 사용자관리 - 엑셀 추가 - 엑셀 데이터 내 데이터 중복
  */
 
 public class Users {
@@ -61,6 +66,11 @@ public class Users {
 			+ "클릭 또는 드래그해서 파일을 선택해 주세요.";
 	public static String[] EXCEL_USER_FORM = {"이름", "이메일", "부서", "직급/직책", "전화번호", "핸드폰"};
 	public static String MSG_MODAL_UPLOAD_ERROR = "엑셀파일만 업로드 가능합니다.";
+	public static String MSG_MODAL_EXCEL_MISS = "오류로 인해 사용자 등록이 실패하였습니다.\n\n"
+			+ "- 누락된 필수 값을 확인하세요.";
+	public static String MSG_MODAL_EXCEL_DUPLICATE = "^오류로 인해 아래 리스트의 사용자 등록이 실패하였습니다\\.\n"
+			+ "\\(총: .건, 실패: .건\\)\n"
+			+ "- 이미 계정이 등록되어 있거나 파일 안에 중복된 데이터입니다\\.$";
 	
 	public static String userExcelSample = "user-sampledata.xlsx";
 	public static String URL_USERS = "/customer/user-list";
@@ -80,6 +90,8 @@ public class Users {
 		context.setAttribute("webDriver", driver);
 		
 		driver.get(CommonValues.MEETING_URL + CommonValues.ADMIN_URL);
+		Connect conn = new Connect();
+		conn.loginAdmin(driver, CommonValues.ADMEMAIL, CommonValues.USERPW);
 
 	}
 	
@@ -87,15 +99,7 @@ public class Users {
 	public void userMenu() throws Exception {
 		String failMsg = "";
 
-		Connect conn = new Connect();
-		if(!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + CommonValues.ADMIN_URL)) {
-			conn.logoutAdmin(driver);
-		}
-		//login
-		conn.loginAdmin(driver, CommonValues.ADMEMAIL, CommonValues.USERPW);
-		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(DashBoard.XPATH_DASHBOARD_LICENSE_TITLE)));
 		
 		//click 사용자 관리
 		selectSideMenu(driver, 1);
@@ -327,6 +331,120 @@ public class Users {
 		}
 	}
 	
+	@Test(priority = 10, enabled = true)
+	public void excelExport_missdata() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		if(!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + URL_USERS)) {
+			//click 사용자 관리
+			selectSideMenu(driver, 1);
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_PANEL_HEADER)));
+		}
+	
+		driver.findElement(By.xpath(XPATH_ADMIN_RIGHT_BTNS + "[1]")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_MODAL_BODY)));
+		
+		driver.findElement(By.xpath(XPATH_MODAL_UPLOAD_FIELD)).sendKeys(CommonValues.TESTFILE_PATH + "user-missingname.xlsx");
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_MODAL_UPLOAD_TXT)));
+		
+		//upload confirm
+		driver.findElement(By.xpath(XPATH_MODAL_FOOTER_BTN_Y)).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")));
+		String popupmsg = driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")).getAttribute("innerText");
+		if(!popupmsg.contentEquals(MSG_MODAL_EXCEL_MISS)) {
+			failMsg = failMsg + "\n1. miss data excelfile msg [Expected]" + MSG_MODAL_EXCEL_MISS
+					+ " [Actual]" + popupmsg;
+		}
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")));
+		driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-header']")));
+		Thread.sleep(1000);
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 11, enabled = true)
+	public void excelExport_duplicate1() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		if(!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + URL_USERS)) {
+			//click 사용자 관리
+			selectSideMenu(driver, 1);
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_PANEL_HEADER)));
+		}
+	
+		driver.findElement(By.xpath(XPATH_ADMIN_RIGHT_BTNS + "[1]")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_MODAL_BODY)));
+		
+		driver.findElement(By.xpath(XPATH_MODAL_UPLOAD_FIELD)).sendKeys(CommonValues.TESTFILE_PATH + "user-duplicate1.xlsx");
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_MODAL_UPLOAD_TXT)));
+		
+		//upload confirm
+		driver.findElement(By.xpath(XPATH_MODAL_FOOTER_BTN_Y)).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")));
+		String popupmsg = driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")).getAttribute("innerText");
+		
+		if(!popupmsg.matches(MSG_MODAL_EXCEL_DUPLICATE)) {
+			failMsg = failMsg + "\n1. miss data excelfile msg [Expected]" + MSG_MODAL_EXCEL_DUPLICATE
+					+ " [Actual]" + popupmsg;
+		}
+		
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")));
+		driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-header']")));
+		Thread.sleep(1000);
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 12, enabled = true)
+	public void excelExport_duplicate2() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		if(!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + URL_USERS)) {
+			//click 사용자 관리
+			selectSideMenu(driver, 1);
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_PANEL_HEADER)));
+		}
+	
+		driver.findElement(By.xpath(XPATH_ADMIN_RIGHT_BTNS + "[1]")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(Connect.XPATH_MODAL_BODY)));
+		
+		driver.findElement(By.xpath(XPATH_MODAL_UPLOAD_FIELD)).sendKeys(CommonValues.TESTFILE_PATH + "user-duplicate2.xlsx");
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_MODAL_UPLOAD_TXT)));
+		
+		//upload confirm
+		driver.findElement(By.xpath(XPATH_MODAL_FOOTER_BTN_Y)).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")));
+		String popupmsg = driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-body']/p")).getAttribute("innerText");
+		
+		if(!popupmsg.matches(MSG_MODAL_EXCEL_DUPLICATE)) {
+			failMsg = failMsg + "\n1. miss data excelfile msg [Expected]" + MSG_MODAL_EXCEL_DUPLICATE
+					+ " [Actual]" + popupmsg;
+		}
+		
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")));
+		driver.findElement(By.xpath("//section[@class='result-error']/div[@class='modal-footer']/button[1]")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-header']")));
+		Thread.sleep(1000);
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
 	//사이드 메뉴 선택 사용자관리가 1번 이후 +1, 0은 대시보드
 	public void selectSideMenu(WebDriver wd, int num) {
 		selectSideMenu(wd, num, 0); 
@@ -378,7 +496,7 @@ public class Users {
 	    try {
 	        if (file.exists()) {
 	            file.delete();
-	            System.out.println("File is delete");
+	            System.out.println("delete File");
 	        } else {
 	            
 	            System.out.println("File is not exist");  
