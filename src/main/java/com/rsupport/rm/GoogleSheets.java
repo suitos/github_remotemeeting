@@ -38,7 +38,7 @@ public class GoogleSheets {
     
     
     public enum TestCase {
-        MANDATORY, ADMIN, WEB, PARTNERS
+        MANDATORY, ADMIN, WEB, PARTNERS, ANDROID
     }
     //기본기능 TC sheet
     private String mandatorysheetId = "1SI3GN-G-JZtLTMj59JHqoLxljruxCsTMitrjy2dlJvA";
@@ -57,13 +57,20 @@ public class GoogleSheets {
     	if(casetype.equalsIgnoreCase(TestCase.MANDATORY.name())) {
     		testedSheetID = mandatorysheetId;
     		methodCol = "G";
-    		resultCol = "H";
-    		testTab = "'기본기능(자동화용)'!";
+    		
+    		if((System.getProperty("server")==null) || (System.getProperty("server").contains("st")))
+    			resultCol = "H";
+    		else if(((System.getProperty("server") != null) && System.getProperty("server").contains("www6")))
+    			resultCol = "J";
+    		else
+    			resultCol = "I";
+    		
+    		testTab = "'웹기본기능(자동화용)'!";
     		
     	} else if(casetype.equalsIgnoreCase(TestCase.ADMIN.name())) {
-    		testedSheetID = rmTCsheetId;
-    		methodCol = "L";
-    		resultCol = "M";
+    		testedSheetID = mandatorysheetId;
+    		methodCol = "P";
+    		resultCol = "Q";
     		testTab = "Admin!";
     		
     	} else if(casetype.equalsIgnoreCase(TestCase.WEB.name())) {
@@ -76,6 +83,12 @@ public class GoogleSheets {
     		methodCol = "L";
     		resultCol = "M";
     		testTab = "Partner!";
+    	} else if(casetype.equalsIgnoreCase(TestCase.ANDROID.name())) {
+    		//임시로 안쓰도록
+    		testedSheetID = mandatorysheetId;
+    		methodCol = "R";
+    		resultCol = "S";
+    		testTab = "Mobile!";
     	}
     }
     
@@ -206,6 +219,7 @@ public class GoogleSheets {
     
     private String passed = "PASS";
     private String failed = "FAIL";
+    private String skipped = "SKIP";
     private Object objP = passed;
     private List<List<Object>> passv = Arrays.asList(
             Arrays.asList(
@@ -216,6 +230,12 @@ public class GoogleSheets {
     private List<List<Object>> failv = Arrays.asList(
             Arrays.asList(
             		objF
+            )
+    );
+    private Object objS = skipped;
+    private List<List<Object>> skipv = Arrays.asList(
+            Arrays.asList(
+            		objS
             )
     );
     
@@ -243,9 +263,10 @@ public class GoogleSheets {
         	for (int i = 0 ; i < values.size() ; i++) {
         		if (values.get(i).size() > 0) {
                     //System.out.println(row.get(0).toString());
-                	if(values.get(i).get(0).toString().contentEquals(method)) {
+                	//if(values.get(i).get(0).toString().contentEquals(method)) {
+        			if(method.contentEquals(values.get(i).get(0).toString())) {
                 		String cell = testTab + resultCol + (i+1);
-                	
+
                 		if(isPassed) {
                 			UpdateValuesResponse result =
                 			        service.spreadsheets().values().update(testedSheetID, cell, passBody)
@@ -264,6 +285,39 @@ public class GoogleSheets {
         	}
         }
     }
+    
+    public void checkdata(String method) throws Exception {
+        Sheets service = getSheetsService(AuthMode.SERVICE_ACCOUNT);
+
+        String range = testTab + methodCol + ":" + methodCol;
+        ValueRange response = service.spreadsheets().values()
+                .get(testedSheetID, range)
+                .execute();
+        
+        ValueRange skipBody = new ValueRange().setValues(skipv);
+        
+        List<List<Object>> values = response.getValues();
+        if (values == null || values.size() == 0) {
+            System.out.println("No data found.");
+        } else {
+        	for (int i = 0 ; i < values.size() ; i++) {
+        		if (values.get(i).size() > 0) {
+                    //System.out.println(row.get(0).toString());
+                	//if(values.get(i).get(0).toString().contentEquals(method)) {
+        			if(method.contentEquals(values.get(i).get(0).toString())) {
+                		String cell = testTab + resultCol + (i+1);
+                		
+                		UpdateValuesResponse result =
+            			        service.spreadsheets().values().update(testedSheetID, cell, skipBody)
+            			                .setValueInputOption("RAW")
+            			                .execute();
+            			System.out.printf("%d cells updated. cell No. %s\n", result.getUpdatedCells(), cell);
+        			}
+        		}
+        	}
+        }
+    }
+
     
     public void clearSheet() throws Exception {
         // 기호에 따라 OAUTH2.0용 인증이나 서비스 계정으로 인증을 수행 후 Sheet Service 객체를 불러온다.
