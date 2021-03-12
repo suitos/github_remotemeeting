@@ -1,5 +1,14 @@
 package partners;
 
+import java.io.File;
+import java.io.FileInputStream;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -25,6 +34,12 @@ public class CommonValues_Partners {
 	public static String QUESTION_URI = "/question";
 	public static String QUESTIONADD_URI = "/question/add";
 	public static String ANSWER_URI = "/answer";
+	public static String MAILSEND_URI = "/mailsend-log";
+	public static String BRANCHPARTNER_URI = "/branch-partner";
+	public static String MYPAGE_URI = "/mypage";
+	public static String INVALIDEMAIL_URI = "/invalidEmail";
+	public static String BANWORD_URI = "/banword";
+	public static String SALESLIST_URI = "/sales/list";
 	
 	public static String DASHBOARD_BTN = "//li[@data-menu='dashboard']";
 	public static String COMPANY_BTN = "//li[@data-menu='company']";
@@ -36,6 +51,12 @@ public class CommonValues_Partners {
 	public static String LOGSTATS_BTN = "//li[@data-menu='conference-log-stats']";
 	public static String QUESTION_BTN = "//li[@data-menu='question']";
 	public static String ANSWER_BTN = "//li[@data-menu='answer']";
+	public static String MAILSEND_BTN = "//li[@data-menu='mailsend-log']";
+	public static String BRANCHPARTNER_BTN = "//li[@data-menu='branch-partner']";
+	public static String MYPAGE_BTN = "//li[@data-menu='mypage']";
+	public static String INVALIDEMAIL_BTN = "//li[@data-menu='invalidEmail']";
+	public static String BANWORD_BTN = "//li[@data-menu='banword']";
+	public static String SALESLIST_BTN = "//li[@data-menu='saleslist']";
 	
 	public static String KO_PARTNER = "rsupkor@rsupport.com";
 	public static String JA_PARTNER = "rsupjpn@rsupport.com";
@@ -51,12 +72,17 @@ public class CommonValues_Partners {
 		
 		driver.findElement(By.xpath("//button[@type='submit']")).click();
 		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='wrap-monthly-stats']")));
-		
-		if(!driver.getCurrentUrl().contentEquals(PARTNER_URL + DASHBOARD_URI)) {
-			Exception e = new Exception("Not Login");
-			throw e;
+		if (isAlertPresent(driver) == false) {
+			WebDriverWait wait = new WebDriverWait(driver, 10);
+			wait.until(
+					ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='wrap-monthly-stats']")));
+
+			if (!driver.getCurrentUrl().contentEquals(PARTNER_URL + DASHBOARD_URI)) {
+				Exception e = new Exception("Not Login");
+				throw e;
+			}
+		} else {
+
 		}
 	}
 	
@@ -85,6 +111,49 @@ public class CommonValues_Partners {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+	
+	public String Excelpath(String filename) {
+		String os = System.getProperty("os.name").toLowerCase();
+		String path = "";
+		int num = 1;
+		
+		String home = System.getProperty("user.home");
+		if (os.contains("windows")) {
+			
+			path = home + "\\Downloads\\" + filename + ".xlsx";
+			File file = new File(path);
+
+			if (!file.exists()) {
+				while (true) {
+					num++;
+					path = home + "\\Downloads\\" + filename + " (" + num + ").xlsx";
+					File file2 = new File(path);
+					if (file2.exists())
+						break;
+					}
+			} 
+		} else {
+			path = home + "/Downloads/" + filename + ".xlsx";
+		}
+		return path;
+	}
+	
+	public static void deleteExcelFile(String filepath) throws Exception {
+		
+	    File file = new File(filepath);
+
+	    try {
+	        if (file.exists()) {
+	            file.delete();
+	            System.out.println("delete file : " + filepath);
+	        } else {
+	            System.out.println("File is not exist");  
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+		
 	}
 
 }

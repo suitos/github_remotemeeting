@@ -2,12 +2,21 @@ package partners;
 
 import static org.testng.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -22,6 +31,42 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import mandatory.CommonValues;
+
+/*
+ * 1.파트너 로그인
+ * 2.라이선스 관리 화면 이동
+ * 3.USER 요금제 승인대기 조건 검색 
+ * 4.회의실 요금제 승인대기 조건 검색 
+ * 5.종량 요금제 승인대기 조건 검색 
+ * 6.만료 예정 조건 검색 
+ * 7.정상 사용중 조건 검색 
+ * 8.전체 선택 조건 검색 
+ * 9.고객코드 조건 검색 
+ * 10.고객사명 조건 검색 
+ * 11.이메일 조건 검색 
+ * 12.엑셀 데이터 확인
+ * 13.30개 단위로 페이징 확인
+ * 14.파트너사 계정으로 로그인 후 사용 승인 버튼 확인
+ * 15.지사 계정으로 로그인 후 사용 승인 버튼 클릭 후 정상 변경 확인
+ * 16.FREE Trial 요금제 항목 링크 클릭 후 화면 이동 확인
+ * 17.라이선스 페이지 시작일 종료일 캘린더 확인
+ * 18.종료일 시작일 이전 날짜로 입력 후 팝업 확인
+ * 19.시작일,종료일 수정
+ * 20.USER 요금제 항목 링크 클릭 후 화면 이동 확인
+ * 21.사용자 수에 문자 입력 후 팝업 확인
+ * 22.0 입력 후 팝업 확인
+ * 23.결제 추가 버튼 선택 후 저장하기 버튼 선택 및 ROW 생성 확인
+ * 24.실행 취소 선택 후 ROW 삭제 확인
+ * 25.결제일,수량,필드 텍스트 박스 확인 및 성공/미납 드롭다운 텍스트 확인
+ * 26.저장 시 수정하기 버튼으로 변경 확인 및 ROW 비활성화 확인
+ * 27.캘린더 수정 가능 확인
+ * 28.결제 금액 필드 입력 가능 확인
+ * 29.수정하기 클릭 시 필드 활성화 확인
+ * 30.결제 정보 테이블 삭지
+ * 31.사용자 수 항목 수정 확인
+ * 32.사용 승인 처리 후 라이선스 상태 "정상" 확인
+ * 33.고객사 삭제
+ */
 
 public class License {
 	
@@ -62,7 +107,7 @@ public class License {
 		Partner_driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		
 		context.setAttribute("webDriver", driver);
-		context.setAttribute("webDriver", Partner_driver);
+		context.setAttribute("webDriver2", Partner_driver);
 	}
 	
 	@Test(priority = 1, enabled = true)
@@ -299,7 +344,7 @@ public class License {
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']/h2")), "고객사 관리"));
 		
 		Code = driver.findElement(By.xpath("//input[@id='id']")).getAttribute("value");
-		Companyname = driver.findElement(By.xpath("//input[@id='companyName']")).getAttribute("value");
+		Companyname = driver.findElement(By.xpath("//input[@id='companyName']")).getAttribute("value").toLowerCase();
 		System.out.println(Code);
 		System.out.println(Companyname);
 		
@@ -335,9 +380,73 @@ public class License {
 	}
 	
 	@Test(priority = 12, enabled = true)
-	public void excel() throws Exception {
+	public void excelLicense() throws Exception {
+		String failMsg = "";
 		
+		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+		int ROWcount = rows.size();
+		List<WebElement> column = driver.findElements(By.xpath("//tr[1]/td"));
+		int Columncount = column.size()-2;
+
+		// Excel Download
+		driver.findElement(By.xpath("//button[@class='btn btn-table btn-primary excel']")).click();
 		
+		TimeUnit.SECONDS.sleep(5);
+		
+		String[][] data = new String[ROWcount][Columncount];
+
+		System.out.println("ROWcount " + ROWcount);
+		System.out.println("Columncount " + Columncount);
+		for (int i = 0; i < ROWcount; i++) {
+			for (int j = 0; j < Columncount; j++) {
+				
+				data[i][j] = rows.get(i)
+						.findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
+				Thread.sleep(100);
+				
+				String webD = data[i][j];
+				String excelD = readExcelFile(comm.Excelpath("license-list"), i, j);
+				
+				if(j == 0) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+					
+				}
+				
+				if(j == 4) {
+					
+					if(excelD.isEmpty() == true || excelD.contentEquals("0")) {
+						excelD = "-";
+					}
+					
+				}
+				
+				if(j == 5) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+					
+				}
+				
+				if(j == 6) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+				
+				}
+				
+				if (!webD.contentEquals(excelD) ){
+					failMsg = failMsg + "\nNot equal data "  +i + "," + j + " : [WEB]" +webD + "[Excel]"
+							+ excelD;
+				}
+				
+			}
+		}
+
+		CommonValues_Partners.deleteExcelFile(comm.Excelpath("license-list"));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
 	@Test(priority= 13, enabled = true)
@@ -528,6 +637,8 @@ public class License {
 		
 		driver.findElement(By.xpath("//div[1]//thead/tr[1]/th[1]")).click();
 		Thread.sleep(1000);
+		driver.findElement(By.xpath("//div[1]//th[(@class='prev')]")).click();
+		
 		driver.findElement(By.xpath("//tr[1]/td[(text()='1')]")).click();
 		Thread.sleep(1000);
 		
@@ -537,6 +648,9 @@ public class License {
 		
 		driver.findElement(By.xpath("//div[1]//thead/tr[1]/th[1]")).click();
 		Thread.sleep(1000);
+		
+		driver.findElement(By.xpath("//div[1]//th[(@class='prev')]")).click();
+		
 		driver.findElement(By.xpath("//td[(text()='10')]")).click();
 		Thread.sleep(1000);
 		
@@ -764,15 +878,19 @@ public class License {
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//td[3]/input[@class='payment-update-datepicker']")));
 		
 		driver.findElement(By.xpath("//td[3]/input[@class='payment-update-datepicker']")).click();
-		
+		Thread.sleep(1000);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@class, 'datepicker-dropdown')]")));
+		
+		driver.findElement(By.xpath("//div[1]//th[(@class='prev')]")).click();
 		
 		driver.findElement(By.xpath("//tr[1]/td[(text()='1')]")).click();
 		Thread.sleep(1000);
 		
 		driver.findElement(By.xpath("//td[4]/input[@class='payment-update-datepicker']")).click();
-		
+		Thread.sleep(1000);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[contains(@class, 'datepicker-dropdown')]")));
+		
+		driver.findElement(By.xpath("//div[1]//th[(@class='prev')]")).click();
 		
 		driver.findElement(By.xpath("//tr[1]/td[(text()='1')]")).click();
 		Thread.sleep(1000);
@@ -799,6 +917,7 @@ public class License {
 		
 		driver.findElement(By.xpath("//tr[1]/td[9]/button[1]")).click();
 		comm2.waitForLoad(driver);
+		Thread.sleep(3000);
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.textToBe(By.xpath("//tr[1]//button"), "수정하기"));
@@ -1029,6 +1148,33 @@ public class License {
 		}
 	}
 	
+	@Test(priority= 33, enabled = true)
+	public void deleteCompany() throws Exception {
+		
+		driver.findElement(By.xpath(CommonValues_Partners.COMPANY_BTN)).click();
+
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='panel-header']")));
+		
+		driver.findElement(By.xpath("//a[contains(text(), 'license test')]")).click();
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='layer-right custom-breadcrumb']")), "고객사 관리 > 상세정보"));
+		
+		driver.findElement(By.xpath("//button[@id='company-delete']")).click();
+
+		wait.until(ExpectedConditions.alertIsPresent());
+		
+		Alert alert = driver.switchTo().alert();
+		alert.accept();
+		
+		wait.until(ExpectedConditions.alertIsPresent());
+		
+		alert.accept();
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "고객사 관리"));
+		
+	}
+	
 	@AfterClass(alwaysRun = true)
 	public void tearDown() throws Exception {
 
@@ -1087,7 +1233,7 @@ public class License {
 
 			switch (i) {
 			case 1:
-				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText();
+				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText().toLowerCase();
 
 				if (!result.contentEquals(Companyname)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
@@ -1096,9 +1242,9 @@ public class License {
 				break;
 
 			case 2:
-				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText();
+				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText().toLowerCase();
 
-				if (!result.contentEquals(Companyname)) {
+				if (!result.contains(Companyname)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
 					throw e;
 				}
@@ -1157,16 +1303,7 @@ public class License {
 		driver.findElement(By.xpath("//select[@id='businessKind']/option[2]")).click();
 		
 		driver.findElement(By.xpath("//input[@id='phone']")).sendKeys("1111111");
-		/*
-		driver.findElement(By.xpath("//button[@id='partner-tree-btn']")).click();
-		
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//li[@role='treeitem']")));
-		
-		driver.findElement(By.xpath("//li/i[@role='presentation']")).click();
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[@class='jstree-anchor']")));
-		Thread.sleep(2000);
-		driver.findElement(By.xpath("//a[contains(text(), '자동화테스트용')]")).click();
-		*/
+		 
 		Thread.sleep(1000);
 		driver.findElement(By.xpath("//button[@id='company-save']")).click();
 		Thread.sleep(3000);
@@ -1204,5 +1341,42 @@ public class License {
 		
 	}
 	
+	public String readExcelFile(String filepath, int x, int y) throws Exception {
+
+		File file = new File(filepath);
+		FileInputStream inputStream = new FileInputStream(file);
+		Workbook testDataWorkBook = new XSSFWorkbook(inputStream);
+		Sheet testDataSheet = testDataWorkBook.getSheetAt(0);
+
+		int rowCount = testDataSheet.getLastRowNum();
+		
+		if(rowCount == 0) {
+			testDataWorkBook.close();
+			return null;
+			
+		} else {
+			int cells = testDataSheet.getRow(0).getPhysicalNumberOfCells();
+
+			DataFormatter formatter = new DataFormatter();
+
+			String[][] data = new String[rowCount][cells];
+
+			for (int i = 0; i < rowCount; i++) {
+
+				// 첫 행 제외
+				Row row = testDataSheet.getRow(i + 1);
+
+				for (int j = 0; j < cells; j++) {
+					
+					Cell cell = row.getCell(j);
+					String a = formatter.formatCellValue(cell);
+
+					data[i][j] = a;
+				}
+			}
+			testDataWorkBook.close();
+			return data[x][y];
+		}
+	}
 	
 }

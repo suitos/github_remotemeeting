@@ -3,12 +3,19 @@ package partners;
 import static org.testng.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -24,9 +31,91 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import com.google.gdata.model.atompub.Control;
-
 import mandatory.CommonValues;
+
+/*
+ * 1.파트너 로그인
+ * 2.고객사 관리 화면으로 이동
+ * 3.검색 필드 확인 및 날짜 선택 항목 비활성 확인
+ * 4.최대 6개월 검색 팝업 확인 및 탈퇴 상태 조건 검색
+ * 5.가입 방식 조건 검색
+ * 6.사용중 요금제 조건 검색
+ * 7.파트너사 선택 후 검색 하고 싶은 파트너사 선택 가능 확인
+ * 8.고객사명 조건 검색
+ * 9.고객 코드 조건 검색
+ * 10.이메일 조건 검색
+ * 11.정상 고객사 조건 검색
+ * 12.체크 상태 기본값 확인
+ * 13.30개 단위로 페이징 확인
+ * 14.고객사 등록 선택 후 페이지 이동 확인
+ * 15.필수 입력란에 미입력 후 저장 및 문구 표시 확인
+ * 16.필수 입력란에 입력 후 저장 및 저장 확인
+ * 17.n고객사 항목 클릭 후 상세정보 표시 확인
+ * 18.상세정보 내 입력창 수정 및 저장
+ * 19.접속페이지 설정 툴팁 확인
+ * 20.형식에 맞는 로고 등록 후 확인
+ * 21.형식에 맞지 않는 로고 등록 후 확인
+ * 22.사용현황 선택 후 화면 이동 확인
+ * 23.회의내역 선택 후 화면 이동 확인
+ * 24.결제관리 선택 후 화면 이동 확인
+ * 25.회의 옵션 > 최대 회의 시간 기본값 확인
+ * 26.최대 회의 시간 10분 미만으로 입력 후 저장 및 문구 확인
+ * 27.최대 회의 시간 1000분 이상으로 입력 후 저장 및 문구 확인
+ * 28.회의 옵션 > 1인 대기 최대 시간 기본값 확인
+ * 29.최대 대기 시간 10분 미만으로 입력 후 저장 및 문구 확인
+ * 30.최대 대기 시간 1000분 이상으로 입력 후 저장 및 문구 확인
+ * 31.탈퇴 버튼 선택 후 탈퇴 안내 팝업 확인 및 취소 선택 시 취소 확인
+ * 32.탈퇴 버튼 선택 후 확인 선택 시 버튼 변경 및 탈퇴 팝업 확인
+ * 33.탈퇴 취소 버튼 선택 후 탈퇴 취소 팝업 확인 및 취소 선택 시 취소 확인
+ * 34.탈퇴 취소 버튼 선택 후 확인 선택 시 버튼 변경 및 탈퇴 취소 팝업 확인
+ * 35.목록 선택 후 화면 이동 확인
+ * 36.엑셀 데이터 확인
+ * 37.
+ * 38.요금제 정보 UI 확인
+ * 39.FREE Trial 버튼 선택 후 팝업 확인
+ * 40.해당 팝업 내 취소 선택 후 닫힘 확인
+ * 41.FREE Trial 버튼 선택 후 시작일을 종료일보다 느리게 설정 후 저장 후 팝업 확인
+ * 42.등록된 해당 요금제의 시작일 링크 선택 후 화면 이동 확인
+ * 43.USER 요금제 버튼 선택 후 팝업 확인
+ * 44.해당 팝업 취소 선택 후 닫힘 확인
+ * 45.USER 요금제 버튼 선택 후 계약 방식 내 연단위 확인
+ * 46.계약 방식 내 월단위 확인
+ * 47.이용자 수 1001명 입력 후 팝업 확인
+ * 48.저장 후 이용자 수 조정 확인 및 등록 확인
+ * 49.회의실 요금제 버튼 선택 후 팝업 확인
+ * 50.해당 팝업 취소 선택 후 닫힘 확인
+ * 51.회의실 요금제 버튼 선택 후 계약 방식 내 연단위 확인
+ * 52.계약 방식 내 월단위 확인
+ * 53.회의실 수량 입력 후 등록 확인
+ * 54.
+ * 55.
+ * 56.임의의 고객사 선택 후 상세정보로 이동 후 사용자 목록 UI 확인
+ * 57.데모 사용자 생성 버튼 클릭 후 팝업 확인
+ * 58.해당 팝업 취소 선택 후 닫힘 확인
+ * 59.해당 팝업 저장 선택 후 데모 사용자 4명 생성 확인
+ * 60.데모 사용자 생성 후 버튼 사라짐 확인
+ * 60.사용자 > 엑셀파일로 일괄 등록 버튼 선택 후 팝업 확인 후 양식 다운로드
+ * 61.엑셀 업로드
+ * 62.
+ * 63.잘못된 서식 파일 업로드 후 메세지 확인
+ * 64.중복된 이메일이 입력된 엑셀 파일 업로드
+ * 65.올바른 엑셀 파일 업로드
+ * 66.사용자 > 신규 등록 선택 후 팝업 확인 및 이메일 미입력 후 중복 확인 선택
+ * 67.형식에 맞지 않은 이메일 입력 후 문구 확인
+ * 68.중복된 이메일 입력 후 문구 확인
+ * 69.해당 팝업 취소 선택 후 닫힘 확인
+ * 70.사용자 > 신규 등록 선택 후 올바른 이메일 입력 후 팝업 확인
+ * 71.권한 관리자로 선택 후 해당 계정으로 관리자 권한 갖는지 확인
+ * 72.일부 계정 활성화
+ * 73.비밀번호 초기화 선택 후 팝업창 확인 및 취소 버튼 선택 시 닫힘 확인
+ * 74.비밀번호 초기화 선택 후 확인 선택
+ * 75.활성화된 계정 브랜드 사이트 로그인 시도
+ * 76.비활성화된 계정 브랜드 사이트 로그인 시도
+ * 77.USER 요금제 시작일 링크 선택 후 사용자 지정 버튼 클릭
+ * 78.사용자 지정 전체 선택
+ * 79.사용자 초과 지정 후 팝업 확인
+ * 80.고객사 삭제
+ */
 
 public class Company {
 	
@@ -78,7 +167,7 @@ public class Company {
 		Login_driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 	
 		context.setAttribute("webDriver", driver);
-		context.setAttribute("webDriver", Login_driver);
+		context.setAttribute("webDriver2", Login_driver);
 
 	}
 
@@ -399,7 +488,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 16, enabled = true)
+	@Test(priority= 14, enabled = true)
 	public void addCompanyURL() throws Exception {
 		String failMsg = "";
 		
@@ -421,7 +510,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 17, enabled = true)
+	@Test(priority= 15, enabled = true)
 	public void addCompany() throws Exception {
 		String failMsg = "";
 		
@@ -443,7 +532,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 18, enabled = true)
+	@Test(priority= 16, enabled = true)
 	public void addCompany2() throws Exception {
 		String failMsg = "";
 		
@@ -474,7 +563,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 19, enabled = true)
+	@Test(priority= 17, enabled = true)
 	public void addCompany3() throws Exception {
 		String failMsg = "";
 		
@@ -503,7 +592,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 20, enabled = true)
+	@Test(priority= 18, enabled = true)
 	public void reviseCompany() throws Exception {
 		String failMsg = "";
 		
@@ -527,7 +616,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 21, enabled = true)
+	@Test(priority= 19, enabled = true)
 	public void tooltipCompany() throws Exception {
 		
 		Actions action = new Actions(driver);
@@ -552,7 +641,7 @@ public class Company {
 			}
 	}
 	
-	@Test(priority= 22, enabled = true)
+	@Test(priority= 20, enabled = true)
 	public void uploadCompany() throws Exception {
 		String failMsg = "";
 
@@ -588,7 +677,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 23, enabled = true)
+	@Test(priority= 21, enabled = true)
 	public void uploadCompany2() throws Exception {
 		String failMsg = "";
 
@@ -620,7 +709,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 24, enabled = true)
+	@Test(priority= 22, enabled = true)
 	public void usageStatusCompany() throws Exception {
 		String failMsg = "";
 		
@@ -643,7 +732,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 25, enabled = true)
+	@Test(priority= 23, enabled = true)
 	public void meetingHistoryCompany() throws Exception {
 		String failMsg = "";
 		
@@ -669,7 +758,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 26, enabled = true)
+	@Test(priority= 24, enabled = true)
 	public void paymentCompany() throws Exception {
 		String failMsg = "";
 		
@@ -696,7 +785,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 27, enabled = true)
+	@Test(priority= 25, enabled = true)
 	public void DefaultmeetingTime() throws Exception {
 		String failMsg = "";
 		
@@ -715,7 +804,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 28, enabled = true)
+	@Test(priority= 26, enabled = true)
 	public void MinmeetingTime() throws Exception {
 		String failMsg = "";
 		
@@ -739,7 +828,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 29, enabled = true)
+	@Test(priority= 27, enabled = true)
 	public void MaxmeetingTime() throws Exception {
 		String failMsg = "";
 		
@@ -763,7 +852,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 30, enabled = true)
+	@Test(priority= 28, enabled = true)
 	public void DefaultwaitingTime() throws Exception {
 		String failMsg = "";
 		
@@ -777,7 +866,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 31, enabled = true)
+	@Test(priority= 29, enabled = true)
 	public void MinwaitingTime() throws Exception {
 		String failMsg = "";
 		
@@ -801,7 +890,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 32, enabled = true)
+	@Test(priority= 30, enabled = true)
 	public void MaxwaitingTime() throws Exception {
 		String failMsg = "";
 		
@@ -825,7 +914,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 33, enabled = true)
+	@Test(priority= 31, enabled = true)
 	public void leaved() throws Exception {
 		String failMsg = "";
 		
@@ -854,7 +943,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 34, enabled = true)
+	@Test(priority= 32, enabled = true)
 	public void leaved2() throws Exception {
 		String failMsg = "";
 		
@@ -889,7 +978,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 35, enabled = true)
+	@Test(priority= 33, enabled = true)
 	public void cancelleaved() throws Exception {
 		String failMsg = "";
 		
@@ -918,7 +1007,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 36, enabled = true)
+	@Test(priority= 34, enabled = true)
 	public void cancelleaved2() throws Exception {
 		String failMsg = "";
 		
@@ -953,7 +1042,7 @@ public class Company {
 		}
 	}
 		
-	@Test(priority= 37, enabled = true)
+	@Test(priority= 35, enabled = true)
 	public void golistCompany() throws Exception {
 		String failMsg = "";
 		
@@ -965,6 +1054,67 @@ public class Company {
 		if (!driver.getCurrentUrl().contentEquals(CommonValues_Partners.PARTNER_URL + CommonValues_Partners.COMPANY_URI)) {
 			failMsg = "Wrong URL [Expected] " + CommonValues_Partners.PARTNER_URL + CommonValues_Partners.COMPANY_URI + " [Actual]" + driver.getCurrentUrl();
 		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority= 36, enabled = true)
+	public void excelCompany() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath(CommonValues_Partners.COMPANY_BTN)).click();
+
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='panel-header']")));
+
+		driver.findElement(By.xpath("//input[@id='search-keywordString']")).sendKeys(CompanyName);
+		
+		driver.findElement(By.xpath("//button[@type='submit']")).click();
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//td/a")), CompanyName));
+		
+		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+		int ROWcount = rows.size();
+		List<WebElement> column = driver.findElements(By.xpath("//td"));
+		int Columncount = column.size();
+
+		// Excel Download
+		driver.findElement(By.xpath("//button[@class='btn btn-primary btn-table excel']")).click();
+		
+		TimeUnit.SECONDS.sleep(5);
+		
+		String[][] data = new String[ROWcount][Columncount];
+
+		System.out.println("ROWcount " + ROWcount);
+		System.out.println("Columncount " + Columncount);
+		for (int i = 0; i < ROWcount; i++) {
+			for (int j = 0; j < Columncount; j++) {
+				
+				data[i][j] = rows.get(i)
+						.findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
+				Thread.sleep(100);
+				
+				String webD = data[i][j];
+				String excelD = readExcelFile(comm.Excelpath("company-list"), i, j);
+				
+				if(j == 0) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+					System.out.println(excelD);
+				}
+				
+				if (!webD.contentEquals(excelD) ){
+					failMsg = failMsg + "\nNot equal data "  +i + "," + j + " : [WEB]" +webD + "[Excel]"
+							+ excelD;
+				}
+				
+			}
+		}
+
+		CommonValues_Partners.deleteExcelFile(comm.Excelpath("company-list"));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -1566,13 +1716,13 @@ public class Company {
 		
 		TimeUnit.SECONDS.sleep(5);
 		
-		String filepath = Excelpath("user-sample");
+		String filepath = comm.Excelpath("user-sample");
 		
 		if(existExcelFile(filepath) == false) {
 			failMsg = failMsg + "\n2.user-sample file is not exist";
 		}
 		else {
-			deleteExcelFile(filepath);
+			CommonValues_Partners.deleteExcelFile(filepath);
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -1606,6 +1756,10 @@ public class Company {
 		driver.findElement(By.xpath("//section/div[2]/button[2]")).click();
 		
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-content']")));
+		
+		if(!driver.findElements(By.xpath("//div[@class='modal-content']")).isEmpty()) {
+			failMsg = "Popup is still display";
+		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -1727,7 +1881,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 66, enabled = true)
+	@Test(priority= 67, enabled = true)
 	public void insertNewuserList_invalid() throws Exception {
 		String failMsg = "";
 		
@@ -1756,7 +1910,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 67, enabled = true)
+	@Test(priority= 68, enabled = true)
 	public void insertNewuserList_duplicate() throws Exception {
 		String failMsg = "";
 		
@@ -1781,7 +1935,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 68, enabled = true)
+	@Test(priority= 69, enabled = true)
 	public void closeNewuserListPopup() throws Exception {
 		String failMsg = "";
 		
@@ -1800,7 +1954,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 69, enabled = true)
+	@Test(priority= 70, enabled = true)
 	public void insertNewuserList_valid() throws Exception {
 		String failMsg = "";
 		
@@ -1850,7 +2004,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 70, enabled = true)
+	@Test(priority= 71, enabled = true)
 	public void checkAdminLogin() throws Exception {
 		String failMsg = "";
 		
@@ -1876,7 +2030,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 71, enabled = true)
+	@Test(priority= 72, enabled = true)
 	public void checkActiveBtn() throws Exception {
 		String failMsg = "";
 		
@@ -1904,7 +2058,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 72, enabled = true)
+	@Test(priority= 73, enabled = true)
 	public void checkPWReset() throws Exception {
 		String failMsg = "";
 		
@@ -1925,7 +2079,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 73, enabled = true)
+	@Test(priority= 74, enabled = true)
 	public void checkPWReset2() throws Exception {
 		String failMsg = "";
 		
@@ -1956,7 +2110,7 @@ public class Company {
 		}	
 	}
 	
-	@Test(priority= 74, enabled = true)
+	@Test(priority= 75, enabled = true)
 	public void checkActiveUserLogin() throws Exception {
 		String failMsg = "";
 		
@@ -1978,7 +2132,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 75, enabled = true)
+	@Test(priority= 76, enabled = true)
 	public void checkInactiveUserLogin() throws Exception {
 		String failMsg = "";
 		
@@ -1999,7 +2153,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 76, enabled = true)
+	@Test(priority= 77, enabled = true)
 	public void settingUserPlan() throws Exception {
 		String failMsg = "";
 		
@@ -2028,7 +2182,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 77, enabled = true)
+	@Test(priority= 78, enabled = true)
 	public void settingUserPlanAll() throws Exception {
 		String failMsg = "";
 		
@@ -2047,7 +2201,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 78, enabled = true)
+	@Test(priority= 79, enabled = true)
 	public void checkUserSaveMsg() throws Exception {
 		String failMsg = "";
 		
@@ -2071,6 +2225,33 @@ public class Company {
 		}
 	}
 	
+	@Test(priority= 80, enabled = true)
+	public void deleteCompany() throws Exception {
+		
+		driver.findElement(By.xpath(CommonValues_Partners.COMPANY_BTN)).click();
+
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='panel-header']")));
+		
+		driver.findElement(By.xpath("//a[contains(text(), 'autotest')]")).click();
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='layer-right custom-breadcrumb']")), "고객사 관리 > 상세정보"));
+		
+		driver.findElement(By.xpath("//button[@id='company-delete']")).click();
+
+		wait.until(ExpectedConditions.alertIsPresent());
+		
+		Alert alert = driver.switchTo().alert();
+		alert.accept();
+		
+		wait.until(ExpectedConditions.alertIsPresent());
+		
+		alert.accept();
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "고객사 관리"));
+		
+	}
+		
 	@AfterClass(alwaysRun = true)
 	public void tearDown() throws Exception {
 
@@ -2132,30 +2313,44 @@ public class Company {
 		}
 	}
 	
-	public String Excelpath(String filename) {
-		String os = System.getProperty("os.name").toLowerCase();
-		String path = "";
-		int num = 1;
-		
-		String home = System.getProperty("user.home");
-		if (os.contains("windows")) {
-			
-			path = home + "\\Downloads\\" + filename + ".xlsx";
-			File file = new File(path);
+	public String readExcelFile(String filepath, int x, int y) throws Exception {
 
-			if (!file.exists()) {
-				while (true) {
-					num++;
-					path = home + "\\Downloads\\" + filename + " (" + num + ").xlsx";
-					File file2 = new File(path);
-					if (file2.exists())
-						break;
-					}
-			} 
+		File file = new File(filepath);
+		FileInputStream inputStream = new FileInputStream(file);
+		Workbook testDataWorkBook = new XSSFWorkbook(inputStream);
+		Sheet testDataSheet = testDataWorkBook.getSheetAt(0);
+
+		int rowCount = testDataSheet.getLastRowNum();
+		
+		System.out.println("rowCount " + rowCount );
+		
+		if(rowCount == 0) {
+			testDataWorkBook.close();
+			return null;
+			
 		} else {
-			path = home + "/Downloads/" + filename + ".xlsx";
+			int cells = testDataSheet.getRow(0).getPhysicalNumberOfCells();
+
+			DataFormatter formatter = new DataFormatter();
+
+			String[][] data = new String[rowCount][cells];
+
+			for (int i = 0; i < rowCount; i++) {
+
+				// 첫 행 제외
+				Row row = testDataSheet.getRow(i + 1);
+
+				for (int j = 0; j < cells; j++) {
+					
+					Cell cell = row.getCell(j);
+					String a = formatter.formatCellValue(cell);
+
+					data[i][j] = a;
+				}
+			}
+			testDataWorkBook.close();
+			return data[x][y];
 		}
-		return path;
 	}
 	
 	public boolean existExcelFile(String filepath) {
@@ -2169,20 +2364,4 @@ public class Company {
 		}
 	}
 	
-	public void deleteExcelFile(String filepath) throws Exception {
-		
-	    File file = new File(filepath);
-
-	    try {
-	        if (file.exists()) {
-	            file.delete();
-	            System.out.println("delete file : " + filepath);
-	        } else {
-	            System.out.println("File is not exist");  
-	        }
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-		
-	}
 }

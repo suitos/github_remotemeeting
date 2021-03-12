@@ -2,9 +2,19 @@ package partners;
 
 import static org.testng.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -19,6 +29,21 @@ import org.testng.annotations.Test;
 
 import mandatory.CommonValues;
 
+/*
+ * 1.파트너 로그인
+ * 2.회의 내역 화면 이동 확인
+ * 3.CID링크 선택 후 화면 이동 확인
+ * 4.그룹명 링크 선택 후 화면 이동 확인
+ * 5.코드 조건으로 검색
+ * 6.고객사명 조건으로 검색
+ * 7.이메일 조건으로 검색
+ * 8.CID 조건으로 검색
+ * 9.CID 조건으로 엑셀 다운로드 후 데이터 확인
+ * 10.검색 조건 없이 엑셀 다운로드 시도
+ * 11.
+ * 12.파트너사 계정으로 로그인 후 회의내역 메뉴 유무 확인
+ */
+
 public class History {
 	
 	public static WebDriver driver;
@@ -27,6 +52,8 @@ public class History {
 	public String Code;
 	public String Companyname;
 	public String Email;
+	
+	public static String AlertMsg = "CID 또는 고객코드로 검색한 내역만 엑셀로 출력 가능합니다.";
 	
 	CommonValues_Partners comm = new CommonValues_Partners();
 	mandatory.CommonValues comm2 = new CommonValues();
@@ -174,8 +201,7 @@ public class History {
 	
 	@Test(priority = 6, enabled = true)
 	public void searchHistory_Companyname() throws Exception {
-		String failMsg = "";
-		
+
 		driver.findElement(By.xpath(CommonValues_Partners.HISTORY_BTN)).click();
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -210,6 +236,83 @@ public class History {
 	}
 	
 	@Test(priority = 9, enabled = true)
+	public void excelsearchCID() throws Exception {
+		String failMsg = "";
+		
+		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+		int ROWcount = rows.size();
+		List<WebElement> column = driver.findElements(By.xpath("//td"));
+		int Columncount = column.size();
+		
+		driver.findElement(By.xpath("//button[@class='btn btn-primary btn-table excel']")).click();
+		
+		TimeUnit.SECONDS.sleep(5);
+		
+		String[][] data = new String[ROWcount][Columncount];
+
+		System.out.println("ROWcount " + ROWcount);
+		System.out.println("Columncount " + Columncount);
+		for (int i = 0; i < ROWcount; i++) {
+			for (int j = 0; j < Columncount; j++) {
+
+				data[i][j] = rows.get(i).findElement(By.xpath(".//td[" + (j + 1) + "]")).getText();
+				Thread.sleep(100);
+
+				String webD = data[i][j];
+				String excelD = readExcelFile(comm.Excelpath("conference-log-list"), i, j);
+
+				if (j == 2) {
+
+					if (excelD.isEmpty() == true && webD.isEmpty()) {
+						excelD = "";
+						webD = "";
+					}
+
+					if (!webD.contentEquals(excelD)) {
+						failMsg = failMsg + "\nNot equal data " + i + "," + j + " : [WEB]" + webD + "[Excel]" + excelD;
+					}
+
+				}
+			}
+		}
+		CommonValues_Partners.deleteExcelFile(comm.Excelpath("conference-log-list"));
+
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 10, enabled = true)
+	public void excelHistory() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath(CommonValues_Partners.HISTORY_BTN)).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "회의내역"));
+		
+		driver.findElement(By.xpath("//button[@class='btn btn-primary btn-table excel']")).click();
+		
+		wait.until(ExpectedConditions.alertIsPresent());
+		
+		Alert alert = driver.switchTo().alert();
+		String alert_msg = alert.getText();
+		alert.accept();
+		
+		System.out.println(alert_msg);
+
+		if (!alert_msg.contentEquals(AlertMsg)) {
+			failMsg = "1.Alert msg is wrong [Expected]" + AlertMsg + " [Actual]" + alert_msg;
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 11, enabled = true)
 	public void checkHistoryMenu() throws Exception {
 		String failMsg = "";
 		
@@ -320,6 +423,46 @@ public class History {
 					break;
 				}
 			}
+		}
+	}
+	
+	public String readExcelFile(String filepath, int x, int y) throws Exception {
+
+		File file = new File(filepath);
+		FileInputStream inputStream = new FileInputStream(file);
+		Workbook testDataWorkBook = new XSSFWorkbook(inputStream);
+		Sheet testDataSheet = testDataWorkBook.getSheetAt(0);
+
+		int rowCount = testDataSheet.getLastRowNum();
+		
+		if(rowCount == 0) {
+			testDataWorkBook.close();
+			return null;
+			
+		} else {
+			int cells = testDataSheet.getRow(0).getPhysicalNumberOfCells();
+
+			DataFormatter formatter = new DataFormatter();
+
+			String[][] data = new String[rowCount][cells];
+
+			for (int i = 0; i < rowCount; i++) {
+
+				// 첫 행 제외
+				Row row = testDataSheet.getRow(i + 1);
+
+				for (int j = 0; j < cells; j++) {
+					
+					if(j == 8 || j ==11) continue;
+					
+					Cell cell = row.getCell(j);
+					String a = formatter.formatCellValue(cell);
+
+					data[i][j] = a;
+				}
+			}
+			testDataWorkBook.close();
+			return data[x][y];
 		}
 	}
 }
