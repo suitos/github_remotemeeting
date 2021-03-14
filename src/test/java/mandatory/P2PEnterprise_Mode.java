@@ -13,19 +13,43 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
+import admin.Connect;
+
+/*
+ * 1.로그인
+ * 2.빠른 시작 선택 후 문서 공유 모드로 회의 시작
+ * 3.이미지 파일 공유 후 로그 확인
+ * 4.텍스트 파일 공유 후 로그 확인
+ * 5.문서 공유 모드로 화면 공유 후 토스트 메세지 확인
+ * 6.문서 공유 모드로 화면 공유 중지 후 토스트 메세지 확인
+ * 7.문서 공유 모드 회의 나가기
+ * 8.빠른 시작 선택 후 화면 공유 모드로 회의 시작
+ * 9.이미지 파일 공유 후 로그 확인
+ * 10.텍스트 파일 공유 후 로그 확인
+ * 11.화면 공유 모드로 화면 공유 후 토스트 메세지 확인
+ * 12.화면 공유 모드로 화면 공유 중지 후 토스트 메세지 확인
+ * 13.화면 공유 모드 회의 나가기
+ * 14.빠른 시작 선택 후 세미나 모드로 회의 시작
+ * 15.이미지 파일 공유 후 로그 확인
+ * 16.텍스트 파일 공유 후 로그 확인
+ * 17.세미나 모드로 화면 공유 후 토스트 메세지 확인
+ * 18.세미나 모드로 화면 공유 중지 후 토스트 메세지 확인
+ * 19.세미나 모드 회의 나가기
+ * 20.라운지에서 관리자 페이지 버튼 선택 후 대시보드 화면 확인
+ */
+
 public class P2PEnterprise_Mode {
 	
-	public static String TOAST_SEMINARMODE = CommonValues.ADMINNICKNAME +"님이 사회자 권한을 선택하였습니다.";
-	
-	public static String HREF_PROFILE = "//a[@href='/customer/dashboard']";
-	
-	public static String ADMIN_URI = "/rmadmin";
-	public static String DASHBOARD_URI = "/customer/dashboard";
+	public String TOAST_SEMINARMODE = "";
 	
 	public static WebDriver driver;
+	
+	public String[] user1 = {CommonValues.ADMEMAIL, CommonValues.ADMINNICKNAME};
+	public String[] user2 = {CommonValues.USERS[0], CommonValues.USERS[0].replace("@gmail.com", "")};
 	
 	private StringBuffer verificationErrors = new StringBuffer();
 	
@@ -35,6 +59,16 @@ public class P2PEnterprise_Mode {
 	@BeforeClass(alwaysRun = true)
 	public void setUp(ITestContext context, String browsertype) throws Exception {
 	
+		if(CommonValues.MEETING_URL.contentEquals(CommonValues.MEETING_URL_REAL6)) {
+			user1[0] = "auto1@rsupport.com";
+			user1[1] = "자동화1";
+			user2[0] = "auto2@rsupport.com";
+			user1[1] = "자동화2";
+		} 
+		
+		//유저에 따라 토스트 메세지 다를수 있
+		TOAST_SEMINARMODE =  user1[1] +"님이 사회자 권한을 선택하였습니다.";
+		
 		comm.setDriverProperty(browsertype);
 
 		//lang=en_US, ko_KR
@@ -52,7 +86,7 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_FREECREATE_BTN)));
 		
-		comm.login(driver, CommonValues.ADMEMAIL, CommonValues.USERPW);
+		comm.login(driver, user1[0], CommonValues.USERPW);
 	}
 	
 	@Test(priority = 2)
@@ -71,6 +105,7 @@ public class P2PEnterprise_Mode {
 			failMsg = "Share file failed" + driver.findElement(By.xpath("//article[@id='document-content']/img")).getAttribute("src");
 		}
 		
+		Thread.sleep(500);
 		String timeline = comm.checkTimeline(driver);
 		System.out.println(timeline);
 		
@@ -78,8 +113,8 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
-			failMsg = "Wrong Timeline";
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
+			failMsg = "Wrong Timeline : " + timeline;
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -105,7 +140,7 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
 			failMsg = "Wrong Timeline";
 		}
 		
@@ -124,10 +159,13 @@ public class P2PEnterprise_Mode {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STARTSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STARTSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STARTSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" + msg;
 		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -144,10 +182,13 @@ public class P2PEnterprise_Mode {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STOPSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STOPSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STOPSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" + msg;
 		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -155,12 +196,12 @@ public class P2PEnterprise_Mode {
 		}
 	}
 	
-	@Test(priority = 7)
+	@Test(priority = 7, enabled = true)
 	public void ExitDOCMode() throws Exception {
 		Exit();
 	}
 	
-	@Test(priority = 8)
+	@Test(priority = 8, enabled = true)
 	public void QuickStart_ScreenMode() throws Exception {
 
 		ChooseMode(2);
@@ -175,6 +216,7 @@ public class P2PEnterprise_Mode {
 		if(!driver.findElement(By.xpath("//article[@id='document-content']/img")).getAttribute("src").contains("remotemeeting.com")) {
 			failMsg = "Share file failed" + driver.findElement(By.xpath("//article[@id='document-content']/img")).getAttribute("src");
 		}
+		Thread.sleep(500);
 		
 		String timeline = comm.checkTimeline(driver);
 		System.out.println(timeline);
@@ -183,8 +225,8 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
-			failMsg = "Wrong Timeline";
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
+			failMsg = "Wrong Timeline : " + timeline;
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -210,7 +252,7 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
 			failMsg = "Wrong Timeline";
 		}
 		
@@ -229,10 +271,13 @@ public class P2PEnterprise_Mode {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STARTSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STARTSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STARTSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" + msg;
 		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -249,10 +294,13 @@ public class P2PEnterprise_Mode {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STOPSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STOPSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STOPSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" + msg;
 		}
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -260,12 +308,12 @@ public class P2PEnterprise_Mode {
 		}
 	}
 	
-	@Test(priority = 13)
+	@Test(priority = 13, enabled = true)
 	public void ExitScreenMode() throws Exception {
 		Exit();
 	}
 	
-	@Test(priority = 14)
+	@Test(priority = 14, enabled = true)
 	public void QuickStart_SeminarMode() throws Exception {
 		
 		ChooseMode(3);
@@ -288,7 +336,7 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
 			failMsg = "Wrong Timeline";
 		}
 		
@@ -315,7 +363,7 @@ public class P2PEnterprise_Mode {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
 			failMsg = "Wrong Timeline";
 		}
 		
@@ -329,16 +377,19 @@ public class P2PEnterprise_Mode {
 	public void SeminarMode_StartShareScreen() throws Exception {
 		String failMsg = "";
 		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
+		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)));
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STARTSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STARTSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STARTSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" + msg;
 		}
-		
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_ROOM_LOADER)));
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
 			throw e;
@@ -349,15 +400,19 @@ public class P2PEnterprise_Mode {
 	public void SeminarMode_StopShareScreen() throws Exception {
 		String failMsg = "";
 		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)));
-		
+		WebDriverWait wait = new WebDriverWait(driver, 20);
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@id='loader-bi']")));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)));
+
 		driver.findElement(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)).click();
 		
-		if(comm.GetAndCheckToastMsg(driver, CommonValues.TOAST_STOPSCREENSHARE) == false) {
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		if(!msg.contentEquals(CommonValues.TOAST_STOPSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STOPSCREENSHARE
-					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+					+ " [Actual]" +msg;
 		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -368,41 +423,6 @@ public class P2PEnterprise_Mode {
 	@Test(priority = 19)
 	public void ExitSeminarMode() throws Exception {
 		Exit();
-	}
-	
-	@Test(priority = 20)
-	public void GoAdmin() throws Exception {
-		String failMsg = "";
-		
-		driver.findElement(By.xpath(HREF_PROFILE)).click();
-		
-		ArrayList<String> tabs = new ArrayList<String> (driver.getWindowHandles());
-		driver.close();
-		driver.switchTo().window(tabs.get(1));
-		
-		if (!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + DASHBOARD_URI)) {
-			failMsg = "Can't enter Admin Dashboard [Expected]" + CommonValues.MEETING_URL + DASHBOARD_URI
-					+ " [Actual]" + driver.getCurrentUrl();
-		}
-		
-		driver.findElement(By.xpath("//div[@id='header-username']")).click();
-		
-		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//a[@id='wrap-more-profile']")));
-		
-		driver.findElement(By.xpath("//div[@id='wrap-logout']")).click();
-		
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='login-box']")));
-		
-		if (!driver.getCurrentUrl().contentEquals(CommonValues.MEETING_URL + ADMIN_URI)) {
-			failMsg = "Can't enter Admin Login [Expected]" + CommonValues.MEETING_URL + ADMIN_URI
-					+ " [Actual]" + driver.getCurrentUrl();
-		}
-		
-		if (failMsg != null && !failMsg.isEmpty()) {
-			Exception e = new Exception(failMsg);
-			throw e;
-		}
 	}
 	
 	@AfterClass(alwaysRun = true)
@@ -446,19 +466,24 @@ public class P2PEnterprise_Mode {
 				throw e;
 			}
 		} else {
-			if (comm.GetAndCheckToastMsg(driver, TOAST_SEMINARMODE) == false) {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+			String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+			if (!msg.contentEquals(TOAST_SEMINARMODE)) {
 				Exception e = new Exception("Wrong SendInvitation MSG [Expected]" + TOAST_SEMINARMODE + " [Actual]"
-						+ driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText());
+						+ msg);
 				throw e;
 			}
 		}
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_ROOM_INVITE)));
+		driver.findElement(By.xpath(CommonValues.XPATH_ROOM_INVITECLOSE_BTN)).click();
 	}
 	
-	public void ShareDocument(WebDriver driver, int i, int j, String N) throws InterruptedException {
+	public void ShareDocument(WebDriver driver, int filetype, int sharedDocCount, String N) throws InterruptedException {
 		String filePath = CommonValues.TESTFILE_PATH;
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) 
 			filePath = CommonValues.TESTFILE_PATH_MAC;
-		String addedfile = filePath + CommonValues.TESTFILE_LIST[i];
+		String addedfile = filePath + CommonValues.TESTFILE_LIST[filetype];
 		
 		switch(N) {
 			case "DOCMODE":driver.findElement(By.xpath("//button/input[@type='file']")).sendKeys(addedfile);
@@ -467,11 +492,12 @@ public class P2PEnterprise_Mode {
 			break;
 		}
 		
-		Thread.sleep(2000);
+		Thread.sleep(5000);
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
         wait.until(ExpectedConditions.attributeContains(driver.findElement(By.xpath("//div[@id='doc-tools']")), "class", "visible"));
-		wait.until(ExpectedConditions.textToBePresentInElementLocated(By.xpath("//span[@id='doc-count']"), Integer.toString(j)));
+        
+		wait.until(ExpectedConditions.textToBePresentInElementLocated(By.xpath("//span[@id='doc-count']"), Integer.toString(sharedDocCount)));
 		
 		Thread.sleep(2000);
 		

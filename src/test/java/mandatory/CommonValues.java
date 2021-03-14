@@ -16,6 +16,7 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -23,10 +24,11 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
 
 public class CommonValues {
 	public static final String WEB_CHROME_DRIVER_PATH = System.getProperty("user.dir") + "/driver/chromedriver.exe";
@@ -35,15 +37,18 @@ public class CommonValues {
 	public static final String WEB_FIREFOX_DRIVER_LINUX_PATH = "/tools/webdriver/geckodriver";
 	
 	public static boolean FOR_JENKINS = true;
-	public static boolean SPREADSHEET = false;
+	public static boolean SPREADSHEET = true;
 	
-	public static String MEETING_URL = "https://st.remotemeeting.com";
+	public static String MEETING_URL_REAL = "https://www.remotemeeting.com";
+	public static String MEETING_URL_ST= "https://st.remotemeeting.com";
+	public static String MEETING_URL_REAL6= "https://www6.remotemeeting.com";
+	public static String MEETING_URL = (System.getProperty("server")==null)||(System.getProperty("server").contains("st"))?MEETING_URL_ST:System.getProperty("server");
 	
 	public static String ADMEMAIL = "rmrsupadm@gmail.com";
-	public static String ADMEMAIL2 = "rmrsup2@gmail.com";
+	public static String ADMEMAIL2 = "rmrsup2@gmail.com"; //생성, 삭제용. 
 	public static String PARTNERKR_EMAIL = "rsupkor@rsupport.com";
 	public static String PARTNERTEST_EMAIL = "rmrsuppartner@gmail.com";
-	public static String[] USERS = {"rmrsup1@gmail.com", "rmrsup3@gmail.com", "rmrsup4@gmail.com"};
+	public static String[] USERS = {"rmrsup1@gmail.com", "rmrsup3@gmail.com", "rmrsup4@gmail.com", "rmrsup5@gmail.com", "rmrsup6@gmail.com", "rmrsup7@gmail.com"};
 	public static String ADM_ID = "rsrsup1@gmail.com";
 	public static String USER_NOLIC = "rsrsup2@gmail.com";//라이선스 없음
 	
@@ -54,9 +59,15 @@ public class CommonValues {
 	//관리자 : rmrsupadm@gmail.com
 	//사용자 : rmrsup1@gmail.com
 	
-	//고각사명 : autotest
+	//고객사명 : autotest (라이센스 테스트용)
 	//관리자 : rmrsup2@gmail.com
 	//사용자 : rmrsup3@gmail.com , rmrsup4@gmail.com
+	
+	//rsupkor 지사 사용자 추가 테스트용 : rmrsup5@gmail.com
+	
+	//접속페이지 테스트용 고객사명 : 자동화테스트용.function
+	//관리자 : rmrsup6@gmail.com
+	//사용자 : rmrsup7@gmail.com
 	
 	public static String USERPW = "!Rsupport0";
 	
@@ -96,6 +107,7 @@ public class CommonValues {
 	public static String XPATH_FREECREATEATTEND_BTN = "//section[@id='gateway']//form/button";
 	public static String XPATH_FREECREATE_DIALOG = "//div[@id='dialog']";
 	public static String XPATH_FREECREATESUBMIT_BTN = "//button[@class='cola-btn size-md type-full green submit']";
+	public static String XPATH_ROOM_LOADER = "//div[@id='loader-bi']";
 
 	public static String XPATH_QUICKSTART_BTN = "//button[@id='btn-gnb-create']";
 	public static String XPATH_QUICKSTARTTITLE_INPUT = "//input[@name='title']";
@@ -107,6 +119,7 @@ public class CommonValues {
 	
 	public static String XPATH_CAMERA_BTN = "//button[@id='camera']";
 	public static String XPATH_MIC_BTN = "//button[@id='mic']";
+	public static String XPATH_REQUESTSPEAK_BTN = "//button[@id='speak-request']";
 	
 	public static String XPATH_SETTING_BTN = "//button[@id='setting']";
 	
@@ -115,7 +128,7 @@ public class CommonValues {
 	public static String XPATH_TIMELINE = "//div[@id='log-content']";
 	public static String XPATH_TIMELINE_BTN = "//button[@id='btn-timeline']";
 	public static String XPATH_TIMELINE_INPUT = "//textarea[@id='chat-textarea']";
-	public static String XPATH_TIMELINESEND_BTN = "//button[@class='send active']";
+	public static String XPATH_TIMELINESEND_BTN = "//div[@id='chat-input']//button";    
 	
 	public static String XPATH_NOTE = "//aside[@id='meeting-note']";
 	public static String XPATH_NOTETITLE_INPUT = "//input[@id='note-title']";
@@ -126,8 +139,14 @@ public class CommonValues {
 	public static String XPATH_NOTESHARE_INPUT = "//input[@id='note-share-input']";
 	public static String XPATH_NOTEHISTORY_BTN = "//button[@id='btn-history']";
 	
+	public static String XPATH_RECORD_BTN = "//button[@id='recording']";
+	public static String XPATH_LOCK_BTN = "//button[@id='lock']";
+	
 	public static String XPATH_SHARESCREEN_BTN = "//button[@id='screen-share']";
 	public static String XPATH_STOPSHARESCREEN_BTN = "//button[@class='screen-share-close button round green large']";
+	
+	public static String XPATH_SWITCHMODE_BTN = "//button[@id='switch-mode']";
+	public static String XPATH_SWITCHMODE_BOX = "//div[@class='mode-option-dropbox']";
 	
 	public static String XPATH_ROOM_DOCSHARE_BTN = "//button[@id='doc-share']";
 	public static String XPATH_ROOM_DOCUPLOAD_BTN = "//a[@id='doc-upload-btn']";
@@ -135,14 +154,23 @@ public class CommonValues {
 	public static String XPATH_ROOM_DOCCONTENT_VIEW = "//article[@id='document-content']";
 	public static String XPATH_ROOM_SCREENSHARE_VIEWDESC = "//span[@id='screen-motion']";
 	public static String XPATH_RECORDING_BTN = "//button[@id='recording']";
+    public static String XPATH_SCREENSHOT_BTN = "//button[@id='screen-shot']";
+    public static String XPATH_CROWN_BTN = "//button[@id='speak-right']";
+    public static String XPATH_SPEAKLIST_BTN = "//button[@id='speak-list']";
 	
 	public static String XPATH_TOAST = "//div[@id='msg-box']/p";
 	
 	public static String TOAST_SENDIVITATION = "초대장을 전송하였습니다.";
 	public static String TOAST_NOTESHARE = "회의록을 전송하였습니다.";
-	public static String TOAST_STARTSCREENSHARE = "화면 공유가 시작 되었습니다.";
-	public static String TOAST_STOPSCREENSHARE = "화면 공유가 종료 되었습니다.";
-	
+	public static String TOAST_STARTSCREENSHARE = "화면공유가 시작되었습니다.";
+	public static String TOAST_STOPSCREENSHARE = "화면공유가 종료되었습니다.";
+	public static String TOAST_BLOCK = "회의실이 접근 차단 상태로 변경되었습니다.";
+	public static String TOAST_LOCK = "회의실이 잠금 상태로 변경되었습니다.";
+	public static String TOAST_CHANGEPW = "비밀번호가 변경 되었습니다.";
+	public static String TOAST_UNLOCK = "회의실 잠금이 해제 되었습니다.";
+	public static String TOAST_FREELIMIT = "Free 버전 회의에서는 사용하실 수 없습니다.";
+	public static String MSG_ATTEND = "[%s] 님이 참여했습니다.";
+
 	public static String ADMINNICKNAME = "자동화기업용관리자";
 	public static String FREENICKNAME = "FREEGUEST";
 	public static String ATTENDEEFREENICKNAME = "FREEATTENDEE";
@@ -186,11 +214,17 @@ public class CommonValues {
 		    options.addArguments("--disable-dev-shm-usage");
 		    options.addArguments("--disable-browser-side-navigation");
 		    options.addArguments("--start-maximized");
-		    options.addArguments("use-fake-ui-for-media-stream");
+		    options.addArguments("--use-fake-ui-for-media-stream");
+		    options.addArguments("--use-fake-device-for-media-stream");
 		    //dpi조정
 		    options.addArguments("force-device-scale-factor=0.75");
 		    options.addArguments("high-dpi-support=0.75");
 		   
+		    options.addExtensions(new File(CommonValues.TESTFILE_PATH + "meetingcapture.crx"));
+		    
+		    DesiredCapabilities dc = new DesiredCapabilities();
+		    dc.setCapability(CapabilityType.UNEXPECTED_ALERT_BEHAVIOUR, UnexpectedAlertBehaviour.IGNORE);
+		    
 		    if(presenter) {
 		    	options.addArguments("auto-select-desktop-capture-source=Entire screen");
 
@@ -288,6 +322,25 @@ public class CommonValues {
 		wait.until(ExpectedConditions.invisibilityOf(driver.findElement(By.xpath(XPATH_ROOM_INVITE))));
 	}
 	
+	public void createNormalMeeting(WebDriver driver, String roomTitle) throws InterruptedException {	
+		WebDriverWait wait = new WebDriverWait(driver, 20);
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_QUICKSTART_BTN)));
+		driver.findElement(By.xpath(XPATH_QUICKSTART_BTN)).click();
+		
+		wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath("//section[@id='create-room-dialog']//input[@name='title']")));
+		
+		driver.findElement(By.xpath("//section[@id='create-room-dialog']//input[@name='title']")).clear();
+		driver.findElement(By.xpath("//section[@id='create-room-dialog']//input[@name='title']")).sendKeys(roomTitle);
+		driver.findElement(By.xpath("//section[@id='create-room-dialog']//button[@type='submit']")).click();
+		
+		waitForLoad(driver);
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ROOM_INVITEINPUT)));
+		driver.findElement(By.xpath(XPATH_ROOM_INVITEINPUT)).click();
+		Thread.sleep(3000);
+		driver.findElement(By.xpath("//section[@id='invite-header']/button")).click();
+		wait.until(ExpectedConditions.invisibilityOf(driver.findElement(By.xpath(XPATH_ROOM_INVITE))));
+	}
+	
 	public String findCode(WebDriver driver) {
 		if(driver.findElement(By.xpath(XPATH_ROOM_INVITE)).getAttribute("style").contains("block")) {
 			roomCode = driver.findElement(By.xpath("//div[@id='search-wrap']/button[1]")).getText();
@@ -312,32 +365,41 @@ public class CommonValues {
 		System.out.println(roomCode);
 		attenddriver.findElement(By.xpath(XPATH_FREECREATEATTEND_BTN)).click();
 		Thread.sleep(2000);
-		attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(roomCode);
-		Thread.sleep(2000);
 		
-		if(isAlertPresent(driver) == true) {
-			for(int i=0; i<6; i++) {
-			attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(Keys.BACK_SPACE); }
-			
-			attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(roomCode);
+		for (int i = 0; i < roomCode.length(); i++) {
+			attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(roomCode.substring(i, i+1));
+	          Thread.sleep(1000);
 		}
-		
+	          
 		attenddriver.findElement(By.xpath(XPATH_FREECREATEATTEND_BTN)).click();
 		
-		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_FREECREATE_INPUT)));
+		if(isAlertPresent(attenddriver) == true) {
+			attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(Keys.CONTROL, "a");
+			attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(Keys.BACK_SPACE);
+			
+			for (int i = 0; i < roomCode.length(); i++) {
+				attenddriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(roomCode.substring(i, i+1));
+		          Thread.sleep(1000);
+			}
+			
+			attenddriver.findElement(By.xpath(XPATH_FREECREATEATTEND_BTN)).click();
+			
+		}
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_FREECREATESUBMIT_BTN)));
 		
 		attenddriver.findElement(By.xpath(XPATH_FREECREATE_INPUT)).sendKeys(ATTENDEEFREENICKNAME);
-		attenddriver.findElement(By.xpath("//button[@class='cola-btn size-md type-full green submit']")).click();
+		attenddriver.findElement(By.xpath(XPATH_FREECREATESUBMIT_BTN)).click();
 		
 		waitForLoad(attenddriver);
 		wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//section[@id='conference-wrap']")));
 	}
 	
 	public String checkTimeline(WebDriver driver) {
-
-		List<WebElement> TimelineList = driver.findElements(By.xpath("//div[@id='log-content']/ol/li"));
-		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(By.xpath("//div[@id='log-content']/ol/li"), 0));
+		
+		List<WebElement> TimelineList = driver.findElements(By.xpath("//div[@id='log-content']/ol/li"));
 
 		String[] a = new String[TimelineList.size()];
 		String b;
@@ -345,8 +407,14 @@ public class CommonValues {
 		if (TimelineList.size() != 1) {
 			wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(".//div[@class='body']/p")));
 			for (int i = 0; i < TimelineList.size(); i++) {
-				a[i] = TimelineList.get(i).findElement(By.xpath(".//div[@class='body']/p")).getText();
-
+				if(!TimelineList.get(i).findElements(By.xpath(".//div[@class='body']/p/img")).isEmpty()) {
+					
+					a[i] = TimelineList.get(i).findElement(By.xpath(".//div[@class='body']/p/img")).getAttribute("class");
+					
+				} else {
+					
+					a[i] = TimelineList.get(i).findElement(By.xpath(".//div[@class='body']/p")).getText();
+				}
 			}
 			b = a[a.length - 1];
 		} else {
@@ -357,6 +425,8 @@ public class CommonValues {
 	}
 	
 	public void login(WebDriver driver, String ID, String PW) throws Exception {
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_HOME_LOGIN_BTN)));
 		
 		driver.findElement(By.xpath(XPATH_HOME_LOGIN_BTN)).click();
 		
@@ -375,7 +445,7 @@ public class CommonValues {
 		driver.findElement(By.xpath(XPATH_HOME_LOGIN_SUBMIT)).click();
 		
 		if(isAlertPresent2(driver) == false) {
-			WebDriverWait wait = new WebDriverWait(driver, 10);
+			
 			try {
 				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='channel-wrap']")));
 			} catch (Exception e) {
@@ -409,10 +479,14 @@ public class CommonValues {
 	}
 	
 	public boolean GetAndCheckToastMsg(WebDriver driver, String ExpectedMsg) {
-		WebDriverWait waitMSG = new WebDriverWait(driver, 10);
-		waitMSG.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), ExpectedMsg));
-
-		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		waitForLoad(driver);
+		
+		WebDriverWait waitMSG = new WebDriverWait(driver, 15);
+		waitMSG.until(ExpectedConditions.textToBe((By.xpath(XPATH_TOAST)), ExpectedMsg));
+		waitMSG.until(ExpectedConditions.textToBePresentInElementLocated((By.xpath(XPATH_TOAST)), ExpectedMsg));
+		waitMSG.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='msg-box']")));
+		
+		String msg = driver.findElement(By.xpath(XPATH_TOAST)).getText();
 		
 		if(!msg.contentEquals(ExpectedMsg)) {
 			return false;
@@ -423,7 +497,7 @@ public class CommonValues {
 	public boolean isAlertPresent(WebDriver driver) {
 	    try 
 	    { 
-	    	Alert alert =driver.switchTo().alert();
+	    	Alert alert = driver.switchTo().alert();
 	        alert.accept();
 	        return true; 
 	    }   
@@ -450,6 +524,85 @@ public class CommonValues {
 		} catch (NoSuchElementException e) {
 			return false;
 		}
+	}
+	
+	public String JPGpath(String filename) {
+		String os = System.getProperty("os.name").toLowerCase();
+		String path = "";
+		
+		String home = System.getProperty("user.home");
+		if (os.contains("windows")) {
+			
+			path = home + "\\Downloads\\" + filename;
+			
+		} else {
+			path = home + "/Downloads/" + filename ;
+			System.out.println(path);
+		}
+		return path;
+	}
+	
+	public void deleteJPGFile(String filepath) throws Exception {
+		
+	    File file = new File(filepath);
+
+	    try {
+	        if (file.exists()) {
+	            file.delete();
+	            System.out.println("delete file : " + filepath);
+	        } else {
+	        	Exception e = new Exception("File is not exist");
+	        	e.printStackTrace(); 
+	        }
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+		
+	}
+	
+	public enum filetype{
+		JPG, PNG, GIF, DOC, DOCX, PPT, PPTX, XLSX, HWP
+	}
+	public void ShareDocument(WebDriver webdriver, filetype type) {
+		String filePath = CommonValues.TESTFILE_PATH;
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) 
+			filePath = CommonValues.TESTFILE_PATH_MAC;
+		String addedfile = "";
+		
+		switch (type) {
+		case DOCX:
+			addedfile = filePath + TESTFILE_LIST[0];
+			break;
+		case XLSX:
+			addedfile = filePath + TESTFILE_LIST[1];
+			break;
+		case HWP:
+			addedfile = filePath + TESTFILE_LIST[2];
+			break;
+		case PNG:
+			addedfile = filePath + TESTFILE_LIST[3];
+			break;
+		case JPG:
+			addedfile = filePath + TESTFILE_LIST[4];
+			break;
+
+		default:
+			addedfile = filePath + TESTFILE_LIST[4];
+			break;
+		}
+		webdriver.findElement(By.xpath("//input[@id='doc-upload-input']")).sendKeys(addedfile);
+	}
+	
+	public void attendRoomLoginUser(WebDriver wd, String code) {
+		if(!wd.getCurrentUrl().contains(MEETING_URL + LOUNGE_URL)) {
+			wd.get(MEETING_URL + LOUNGE_URL);
+		}
+		
+		WebDriverWait wait = new WebDriverWait(wd, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='gnb-conference']")));	
+		wd.findElement(By.xpath("//div[@id='gnb-conference']//input")).sendKeys(code);
+		wd.findElement(By.xpath("//div[@id='gnb-conference']//button")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_EXIT_BTN)));
 	}
 
 }

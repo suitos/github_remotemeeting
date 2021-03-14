@@ -7,8 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -24,8 +22,11 @@ import org.testng.annotations.Test;
  * 1.AI데모 팝업 확인
  * 2.AI데모 실행,  AI데모 룸 꽉찻을 경우 예외처리
  * 3.데모 로그 확인
- * 4.나가기 버튼 클릭 후 팝업 명 확인
- * 5.AI데모 나가기 
+ * 4.화면 공유 클릭 시 불가 토스트 메세지 확인
+ * 5.나가기 버튼 클릭 후 팝업 명 확인
+ * 6.AI데모 나가기
+ * 7.연결 상태 진단 버튼 선택
+ * 8.연결 상태 진단 시작 
  */
 
 public class Free {
@@ -37,6 +38,8 @@ public class Free {
 	
 	public static String XPATH_EXITDEMO_BTN = "//button[@id='exit']";
 	
+	public static String TOAST_SCREENSHARE = "라이브미팅 중에는 사용 할 수 없습니다.\n" + "라이브미팅 종료 후 회의를 개설해 이용해 보세요.";
+	
 	public static String MSG_FULLDEMO = "모든 아루가 데모를 진행하고 있습니다.\n" + "잠시 후 다시 시도해주세요.";
 	public static String MSG_DEMOCHAT = "WebRTC란?\n" + "Web Real-Time Communication의 약자";
 	public static String MSG_EXITDEMO = "지금 회의실을 나가시면 처음부터 다시 시작하셔야 합니다.\n" + "그래도 나가시겠습니까?";
@@ -45,6 +48,8 @@ public class Free {
 	public static WebDriver driver;
 
 	private StringBuffer verificationErrors = new StringBuffer();
+	
+	CommonValues comm = new CommonValues();
 	
 	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
@@ -91,7 +96,7 @@ public class Free {
 		driver.findElement(By.xpath(XPATH_AIDEMO_BTNBOX)).click();
 		Thread.sleep(1000);
 
-		if (isAlertPresent(driver) == true) {
+		if (comm.isAlertPresent2(driver) == true) {
 			Alert alert = driver.switchTo().alert();
 			String alert_msg = alert.getText();
 			alert.accept();
@@ -99,15 +104,17 @@ public class Free {
 			System.out.println(alert_msg);
 			if (!alert_msg.contentEquals(MSG_FULLDEMO)) {
 				failMsg = "1.Full AI DEMO ROOM";
-
 			}
-		} else {
 
-			waitForLoad(driver);
+			driver.findElement(By.xpath(XPATH_AIDEMO_BTNBOX)).click();
+			Thread.sleep(1000);
 
-			if (!driver.getCurrentUrl().contains(CommonValues.MEETING_URL + CommonValues.ROOM_URL)) {
-				failMsg = "1.Can't enter Demo Room";
-			}
+		}
+
+		comm.waitForLoad(driver);
+
+		if (!driver.getCurrentUrl().contains(CommonValues.MEETING_URL + CommonValues.ROOM_URL)) {
+			failMsg = "1.Can't enter Demo Room";
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -144,14 +151,33 @@ public class Free {
 	}
 	
 	@Test(priority = 4)
+	public void checkScreenShareMSG() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath("//button[@id='screen-share']")).click();
+		
+		if(comm.GetAndCheckToastMsg(driver, TOAST_SCREENSHARE) == false) {
+			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + TOAST_SCREENSHARE
+					+ " [Actual]" + driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+		
+	}
+	
+	@Test(priority = 5)
 	public void checkExitdemoMSG() throws Exception {
 		String failMsg = "";
 		
-		driver.findElement(By.xpath(XPATH_EXITDEMO_BTN)).click();
-		Thread.sleep(1000);
-		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
-		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='dialog-header']")), MSG_EXITDEMO));
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_EXITDEMO_BTN)));
+		
+		driver.findElement(By.xpath(XPATH_EXITDEMO_BTN)).click();
+	
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='dialog-header']")));
 		
 		if(!driver.findElement(By.xpath("//div[@class='dialog-header']")).getText().contentEquals(MSG_EXITDEMO)) {
 			failMsg = "1.Wrong Exit MSG";
@@ -163,7 +189,8 @@ public class Free {
 		}
 	}
 	
-	@Test(priority = 5)
+	
+	@Test(priority = 6)
 	public void Exitdemo() throws Exception {
 		String failMsg = "";
 		
@@ -182,7 +209,44 @@ public class Free {
 			throw e;
 		}
 	}
+	
+	@Test(priority = 7)
+	public void clickDiagnose() throws Exception {
+		String failMsg = "";
 		
+		driver.findElement(By.xpath("//i[@class='rm-icon-network']")).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='dialog']")));
+		
+		if(!driver.findElement(By.xpath("//div[@id='dialog']")).isDisplayed()) {
+			failMsg = "Diagnose popup is not display";
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 8)
+	public void startDiagnose() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath("//button[@id='check-button']")).click();
+		
+		waitUntilCountChanges();	
+		
+		if(!driver.findElement(By.xpath("//div[@id='result-success']")).getText().contentEquals("모든 항목의 연결에 성공하였습니다.")) {
+			failMsg = "Wrong Msg [Expected] 모든 항목의 연결에 성공하였습니다. [Actual]" + driver.findElement(By.xpath("//div[@id='result-success']")).getText();
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+
 	@AfterClass(alwaysRun = true)
 	public void tearDown() throws Exception {
 
@@ -194,26 +258,45 @@ public class Free {
 		}
 	}
 	
-	public void waitForLoad(WebDriver driver) {
-        ExpectedCondition<Boolean> pageLoadCondition = new
-                ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor)driver).executeScript("return document.readyState").equals("complete");
-                    }
-                };
-                WebDriverWait wait = new WebDriverWait(driver, 30);
-                wait.until(pageLoadCondition);
+	public void waitUntilCountChanges() {
+		WebDriverWait wait = new WebDriverWait(driver, 30);
+		wait.until(new ExpectedCondition<Boolean>() {
+			public Boolean apply(WebDriver driver) {
+				List<WebElement> element = driver.findElements(By.xpath("//li/strong"));
+				int elementCount = element.size();
+
+				if (elementCount == 4) {
+					for (int i = 0; i < elementCount; i++) {
+
+						WebDriverWait wait = new WebDriverWait(driver, 10);
+						wait.until(ExpectedConditions.textToBePresentInElementLocated((By.xpath("//li[4]/strong")),
+								"OK!"));
+
+						String ok = element.get(i).getText();
+
+						if (!ok.contentEquals("OK!")) {
+							driver.navigate().refresh();
+
+							wait.until(ExpectedConditions
+									.visibilityOfElementLocated(By.xpath("//i[@class='rm-icon-network']")));
+
+							driver.findElement(By.xpath("//i[@class='rm-icon-network']")).click();
+
+							wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='dialog']")));
+
+							driver.findElement(By.xpath("//button[@id='check-button']")).click();
+
+							waitUntilCountChanges();
+						}
+
+					}
+					return true;
+				}
+
+				return false;
+			}
+		});
 	}
-        
-	public boolean isAlertPresent(WebDriver wd) {
-	    boolean foundAlert = false;
-	    WebDriverWait wait = new WebDriverWait(wd, 5);
-	    try {
-	        wait.until(ExpectedConditions.alertIsPresent());
-	        foundAlert = true;
-	    } catch (TimeoutException TO) {
-	        foundAlert = false;
-	    }
-	    return foundAlert;
-	}
+	
+
 }

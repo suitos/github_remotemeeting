@@ -33,17 +33,19 @@ public class TestListener implements ITestListener {
     	String type = result.getInstanceName().split("\\.")[0];
     
     	String methodName=result.getName().toString().trim();
-    	System.out.println("***** Error " + methodName +" test has failed *****");
+    	String method = result.getInstanceName().split("\\.")[1] + "." + result.getName();
+    	System.out.println("***** Error " + method +" test has failed *****");
     	
-    	//스프레드 시트에 결과
-    	GoogleSheets sheet= new GoogleSheets(type);
-		try {
-			sheet.checkdata(result.getName().toString(), false);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+    	if(CommonValues.SPREADSHEET) {
+    		//스프레드 시트에 결과
+        	GoogleSheets sheet= new GoogleSheets(type);
+    		try {
+    			sheet.checkdata(method, false);
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
         ITestContext context = result.getTestContext();
         WebDriver driver = (WebDriver)context.getAttribute("webDriver");
         
@@ -102,19 +104,36 @@ public class TestListener implements ITestListener {
     public void onTestSuccess(ITestResult result) { 
     	
     	String type = result.getInstanceName().split("\\.")[0];
-   
-    	System.out.println("test success : " + result.getName().toString());
-    	//스프레드 시트에 결과
-    	GoogleSheets sheet= new GoogleSheets(type);
-		try {
-			sheet.checkdata(result.getName().toString(), true);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    	String method = result.getInstanceName().split("\\.")[1] + "." + result.getName();
+    	System.out.println("test success : " + method);
+    	if(CommonValues.SPREADSHEET) {
+    		//스프레드 시트에 결과
+        	GoogleSheets sheet= new GoogleSheets(type);
+    		try {
+    			sheet.checkdata(method, true);
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
+    	
     }
 
-    public void onTestSkipped(ITestResult result) {   }
+    public void onTestSkipped(ITestResult result) { 
+    	String type = result.getInstanceName().split("\\.")[0];
+    	String method = result.getInstanceName().split("\\.")[1] + "." + result.getName();
+    	System.out.println("test skip!! : " + method);
+    	if(CommonValues.SPREADSHEET) {
+    		//스프레드 시트에 결과
+        	GoogleSheets sheet= new GoogleSheets(type);
+    		try {
+    			sheet.checkdata(method);
+    		} catch (Exception e) {
+    			// TODO Auto-generated catch block
+    			e.printStackTrace();
+    		}
+    	}
+    }
 
     public void onTestFailedButWithinSuccessPercentage(ITestResult result) {   }
 

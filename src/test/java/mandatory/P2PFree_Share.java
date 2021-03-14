@@ -5,7 +5,6 @@ import static org.testng.Assert.fail;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
@@ -14,6 +13,26 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
+/*
+ * 1.무료 체험 회의 개설
+ * 2.문서 공유 선택 후 업로드 창 확인
+ * 3.docx파일 공유 후 로그 확인
+ * 4.xlsx파일 공유 후 로그 확인
+ * 5.hwp파일 공유 후 로그 확인
+ * 6.png파일 공유 후 로그 확인
+ * 7.jpg파일 공유 후 로그 확인
+ * 8.gif파일 공유 후 로그 확인
+ * 9.pdf파일 공유 후 로그 확인
+ * 10.pptx파일 공유 후 로그 확인
+ * 11.txt파일 공유 후 로그 확인
+ * 12.포인터 선택 후 활성화 확인
+ * 13.그리기 선택 후 활성화 확인
+ * 14.문서 공유 중 닫기 선택 후 로그 확인
+ * 15.화면 공유 후 토스트 메세지 확인
+ * 16.화면 공유 아이콘 pip에서 확인
+ * 17.화면 공유 중지 후 토스트 메세지 확인
+ * 18.녹화 버튼 선택 후 비즈니스 팝업 확인
+ */
 
 public class P2PFree_Share {
 	
@@ -26,6 +45,7 @@ public class P2PFree_Share {
 	public static String XPATH_ERASER_BTN = "//button[@id='draw-eraser']";
 	public static String XPATH_REMOVEALL_BTN = "//button[@id='draw-removeall']";
 	public static String XPATH_CLOSE_BTN = "//button[@id='doc-close']";
+	public static String XPATH_DOCSHARE_INPUT = "//input[@id='doc-upload-input']";
 	
 	public String roomID = "";
 	
@@ -47,6 +67,7 @@ public class P2PFree_Share {
 		context.setAttribute("webDriver", driver);
 		
 	}
+	
 	@Test(priority = 1)
 	public void CreateFree() throws Exception {
 		String failMsg = "";
@@ -420,13 +441,26 @@ public class P2PFree_Share {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
 		
-		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), CommonValues.TOAST_STARTSCREENSHARE));
-
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
-	
 		if(!msg.contentEquals(CommonValues.TOAST_STARTSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STARTSCREENSHARE
 					+ " [Actual]" + msg;
+		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 16, dependsOnMethods = {"StartShareScreen"})
+	public void CheckShareScreenIcon() throws Exception {
+		String failMsg = "";
+		
+		if(!driver.findElement(By.xpath("//div[@id='local-video-pip']//span[@class='overlap screen screen-share']")).isDisplayed()) {
+			failMsg = "ShareScreen Icon is not displayed in local pip";
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -435,7 +469,7 @@ public class P2PFree_Share {
 		}
 	}
 	
-	@Test(priority = 16)
+	@Test(priority = 17)
 	public void StopShareScreen() throws Exception {
 		String failMsg = "";
 		
@@ -444,14 +478,56 @@ public class P2PFree_Share {
 		
 		driver.findElement(By.xpath(CommonValues.XPATH_STOPSHARESCREEN_BTN)).click();
 		
-		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath(CommonValues.XPATH_TOAST)), CommonValues.TOAST_STOPSCREENSHARE));
-
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
-	
 		if(!msg.contentEquals(CommonValues.TOAST_STOPSCREENSHARE)) {
 			failMsg = failMsg + "Wrong Screen Share MSG [Expected]" + CommonValues.TOAST_STOPSCREENSHARE
 					+ " [Actual]" + msg;
 		}
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 18)
+	public void RecordFreeRoom() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath(CommonValues.XPATH_RECORD_BTN)).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
+		if(!driver.findElement(By.xpath("//div[@class='dialog-header']")).getText().contentEquals(P2PFree.EXIT_HEADER)) {
+			failMsg = "Wrong Header [Expected] " + P2PFree.EXIT_HEADER + " [Actual]" + driver.findElement(By.xpath("//div[@class='dialog-header']")).getText();
+		}
+		driver.findElement(By.xpath("//button[@id='dialog-close']")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 19)
+	public void ScreenCaptureFreeRoom() throws Exception {
+		String failMsg = "";
+		
+		driver.findElement(By.xpath(CommonValues.XPATH_SCREENSHOT_BTN)).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
+		if(!driver.findElement(By.xpath("//div[@class='dialog-header']")).getText().contentEquals(P2PFree.EXIT_HEADER)) {
+			failMsg = "Wrong Header [Expected] " + P2PFree.EXIT_HEADER + " [Actual]" + driver.findElement(By.xpath("//div[@class='dialog-header']")).getText();
+		}
+		driver.findElement(By.xpath("//button[@id='dialog-close']")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -475,7 +551,7 @@ public class P2PFree_Share {
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) 
 			filePath = CommonValues.TESTFILE_PATH_MAC;
 		String addedfile = filePath + CommonValues.TESTFILE_LIST[i];
-		driver.findElement(By.xpath("//input[@id='doc-upload-input']")).sendKeys(addedfile);
+		driver.findElement(By.xpath(XPATH_DOCSHARE_INPUT)).sendKeys(addedfile);
 		Thread.sleep(2000);
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
