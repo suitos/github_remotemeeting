@@ -1,10 +1,18 @@
 package partners;
 
-
 import static org.testng.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
@@ -18,6 +26,17 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import mandatory.CommonValues;
+
+/*
+ * 1.파트너 로그인
+ * 2.사용현황 화면 이동
+ * 3.고객코드 조건 검색 확인
+ * 4.고객사명 조건 검색 확인
+ * 5.이메일 조건 검색 확인
+ * 6.엑셀 데이터 확인
+ * 7.30개 단위 페이징 확인
+ * 8.회의 내역 선택 후 이동 확인
+ */
 
 public class LogStats {
 	
@@ -144,7 +163,58 @@ public class LogStats {
 	
 	@Test(priority = 6, enabled = true)
 	public void excelLogStats() throws Exception {
+		String failMsg = "";
 		
+		driver.findElement(By.xpath(CommonValues_Partners.LOGSTATS_BTN)).click();
+
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "사용현황"));
+
+		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+		int ROWcount = rows.size();
+		List<WebElement> column = driver.findElements(By.xpath("//tr[1]/td"));
+		int Columncount = column.size()-1;
+
+		// Excel Download
+		driver.findElement(By.xpath("//button[@class='btn btn-table btn-primary excel']")).click();
+		
+		TimeUnit.SECONDS.sleep(5);
+		
+		String[][] data = new String[ROWcount][Columncount];
+
+		System.out.println("ROWcount " + ROWcount);
+		System.out.println("Columncount " + Columncount);
+		for (int i = 0; i < ROWcount; i++) {
+			for (int j = 0; j < Columncount; j++) {
+				
+				data[i][j] = rows.get(i)
+						.findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
+				Thread.sleep(100);
+				
+				String webD = data[i][j];
+				String excelD = readExcelFile(comm.Excelpath("conference-log-stats"), i, j);
+				
+				if(j == 0) {
+					// 고객사명 공백 에러가 있어 공백 제거
+					webD = webD.replace(" ", "");
+					excelD = excelD.replace(" ", "");
+					
+				}
+				
+				if (!webD.contentEquals(excelD) ){
+					failMsg = failMsg + "\nNot equal data "  +i + "," + j + " : [WEB]" +webD + "[Excel]"
+							+ excelD;
+				}
+				
+			}
+		}
+
+		CommonValues_Partners.deleteExcelFile(comm.Excelpath("conference-log-stats"));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
 	@Test(priority = 7, enabled = true)
@@ -335,4 +405,42 @@ public class LogStats {
 				}
 			}
 		}
+	
+	public String readExcelFile(String filepath, int x, int y) throws Exception {
+
+		File file = new File(filepath);
+		FileInputStream inputStream = new FileInputStream(file);
+		Workbook testDataWorkBook = new XSSFWorkbook(inputStream);
+		Sheet testDataSheet = testDataWorkBook.getSheetAt(0);
+
+		int rowCount = testDataSheet.getLastRowNum();
+		
+		if(rowCount == 0) {
+			testDataWorkBook.close();
+			return null;
+			
+		} else {
+			int cells = testDataSheet.getRow(0).getPhysicalNumberOfCells();
+
+			DataFormatter formatter = new DataFormatter();
+
+			String[][] data = new String[rowCount][cells];
+
+			for (int i = 0; i < rowCount; i++) {
+
+				// 첫 행 제외
+				Row row = testDataSheet.getRow(i + 1);
+
+				for (int j = 0; j < cells; j++) {
+					
+					Cell cell = row.getCell(j);
+					String a = formatter.formatCellValue(cell);
+
+					data[i][j] = a;
+				}
+			}
+			testDataWorkBook.close();
+			return data[x][y];
+		}
+	}
 }

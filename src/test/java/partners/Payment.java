@@ -2,13 +2,23 @@ package partners;
 
 import static org.testng.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
@@ -18,6 +28,31 @@ import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import mandatory.CommonValues;
+
+/*
+ * 1.파트너 로그인
+ * 2.결제 관리 화면 이동
+ * 3.전체 조건 검색 확인
+ * 4.미납 ID 요금제 조건 검색 
+ * 5.미납 회의실 요금제 조건 검색 
+ * 6.미납 종량 요금제 조건 검색 
+ * 7.결제 완료 전체 조건 검색 
+ * 8.결제 완료 카드 조건 검색 
+ * 9.결제 완료 오프라인 조건 검색 
+ * 10.고객 코드 조건 검색
+ * 11.고객사명 조건 검색
+ * 12.이메일 조건 검색
+ * 13.엑셀 데이터 확인
+ * 14.30개 단위로 페이징 확인
+ * 15.청구서 UI 확인
+ * 16.청구서 팝업 닫힘 확인
+ * 17.카드 결제 취소 시 팝업 확인
+ * 18.오프라인 결제 취소 시 팝업 확인
+ * 19.결제 완료 처리 시 팝업 확인
+ * 20.수량 셀 확인
+ * 21.결제 실패한 경우 결제 상태 영역 "실패" 확인
+ * 22.결제 상태 영역 마우스 오버 시 툴팁 확인
+ */
 
 public class Payment {
 	
@@ -34,7 +69,9 @@ public class Payment {
 	public static String AlertMsg3 = "결제 완료 처리를 진행 하시겠습니까?";
 	
 	//기간 : x, 파트너사 : rsupkor, 결제상태 : 전체, 결제방식 : card
-	private static String searchCardPayment_URI = "?search.dateCondition=ALL&search.penalty=false&search.planFor=&search.paymentStatus=&search.paymentMethod=CARD&search.partnerName=rsupkor&search.partnerId=000000005def4da1015def73bb580000&search.keywordCondition=COMPANY_NAME&search.keyword=&search.total=true&_search.total=on";
+	private static String searchCardPayment_URI = "?search.dateCondition=ALL&search.penalty=false&search.planFor=&search.paymentStatus=S&search.paymentMethod=CARD&search.partnerName=&search.partnerId=&search.keywordCondition=COMPANY_NAME&search.keyword=테스트+고객사3&search.total=true&_search.total=on";
+	//기간 : x, 파트너사 : rsupkor, 결제상태 : 실패
+	private static String searchFailPayment_URI = "?search.dateCondition=ALL&search.penalty=false&search.planFor=&search.paymentStatus=F&search.paymentMethod=&search.partnerName=rsupkor&search.partnerId=000000005def4da1015def73bb580000&search.keywordCondition=COMPANY_NAME&search.keyword=&search.total=true&_search.total=on";
 	
 	public String Code;
 	public String Companyname;
@@ -305,7 +342,7 @@ public class Payment {
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']/h2")), "고객사 관리"));
 		
 		Code = driver.findElement(By.xpath("//input[@id='id']")).getAttribute("value");
-		Companyname = driver.findElement(By.xpath("//input[@id='companyName']")).getAttribute("value");
+		Companyname = driver.findElement(By.xpath("//input[@id='companyName']")).getAttribute("value").toLowerCase();
 		System.out.println(Code);
 		System.out.println(Companyname);
 		
@@ -340,9 +377,75 @@ public class Payment {
 	}
 	
 	@Test(priority = 13, enabled = true)
-	public void Paymentexcel() throws Exception {
+	public void excelPayment() throws Exception {
+		String failMsg = "";
 		
+		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+		int ROWcount = rows.size();
+		List<WebElement> column = driver.findElements(By.xpath("//tr[1]/td"));
+		int Columncount = column.size()-2;
+
+		// Excel Download
+		driver.findElement(By.xpath("//button[@class='btn btn-table btn-primary excel']")).click();
 		
+		TimeUnit.SECONDS.sleep(5);
+		
+		String[][] data = new String[ROWcount][Columncount];
+
+		System.out.println("ROWcount " + ROWcount);
+		System.out.println("Columncount " + Columncount);
+		for (int i = 0; i < ROWcount; i++) {
+			for (int j = 0; j < Columncount; j++) {
+				
+				if(j >= 5) {
+					data[i][j] = rows.get(i)
+							.findElement(By.xpath( ".//td[" + (j + 2) + "]")).getText();
+				} else {
+					
+				data[i][j] = rows.get(i)
+						.findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
+				Thread.sleep(100);
+				}
+				
+				String webD = data[i][j];
+				String excelD = readExcelFile(comm.Excelpath("payment-list"), i, j);
+				
+				
+				if(j == 6) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+					
+				}
+				
+				if(j == 7) {
+					// 날짜 포맷이 다르다 변환필요
+					excelD = excelD.substring(0,10);
+				
+				}
+				
+				if(j == 9) {
+					
+					if(excelD.isEmpty() == true) {
+						excelD = "";
+					}else {
+					excelD = excelD.substring(0,10);
+					}
+				}
+				
+				if (!webD.contentEquals(excelD) ){
+					failMsg = failMsg + "\nNot equal data "  +i + "," + j + " : [WEB]" +webD + "[Excel]"
+							+ excelD;
+				}
+				
+			}
+		}
+
+		CommonValues_Partners.deleteExcelFile(comm.Excelpath("payment-list"));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
 	@Test(priority= 14, enabled = true)
@@ -383,7 +486,7 @@ public class Payment {
 
 		List<WebElement> billlist = driver.findElements(By.xpath("//button[@class='btn btn-table btn-success partner-customer-bill']//ancestor::tr"));
 		
-		billlist.get(0).findElement(By.xpath(".//td[2]/a")).click();
+		billlist.get(1).findElement(By.xpath(".//td[2]/a")).click();
 		
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']/h2")), "고객사 관리"));
 		//find companycode
@@ -395,7 +498,7 @@ public class Payment {
 
 		billlist = driver.findElements(By.xpath("//button[@class='btn btn-table btn-success partner-customer-bill']//ancestor::tr"));
 		
-		billlist.get(0).findElement(By.xpath(".//td[3]/a")).click();
+		billlist.get(1).findElement(By.xpath(".//td[3]/a")).click();
 		
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']/h2")), "파트너사 관리"));
 		//find img src
@@ -410,21 +513,21 @@ public class Payment {
 		
 		billlist = driver.findElements(By.xpath("//button[@class='btn btn-table btn-success partner-customer-bill']//ancestor::tr"));
 		//find plan
-		String plan = billlist.get(0).findElement(By.xpath(".//td[4]/a")).getText();
+		String plan = billlist.get(1).findElement(By.xpath(".//td[4]/a")).getText();
 		
 		//find term
-		String term = billlist.get(0).findElement(By.xpath(".//td[8]")).getText() + billlist.get(0).findElement(By.xpath(".//td[9]")).getText();
+		String term = billlist.get(1).findElement(By.xpath(".//td[8]")).getText() + billlist.get(1).findElement(By.xpath(".//td[9]")).getText();
 		String mterm = term.replace("/", "");
 		System.out.println(mterm);
 		
 		//find price
-		String price = billlist.get(0).findElement(By.xpath(".//td[10]/span")).getText();
+		String price = billlist.get(1).findElement(By.xpath(".//td[10]/span")).getText();
 		String mprice = price.replaceAll("[^0-9]", "");
 		System.out.println(mprice);
 
 		List<WebElement> billbtn = driver.findElements(By.xpath("//button[@class='btn btn-table btn-success partner-customer-bill']"));
 		
-		billbtn.get(0).click();
+		billbtn.get(1).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='modalBillBody']")));
 
 		//check bill
@@ -436,7 +539,11 @@ public class Payment {
 			}
 			
 		}else {
-			failMsg = "Wrong select bill";
+			driver.findElement(By.xpath("//button[@class='btn btn-default non-print']")).click();
+			wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@id='modalBillBody']")));
+			billbtn.get(2).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='modalBillBody']")));
+
 		}
 		//check plan
 		if(!driver.findElement(By.xpath("//label[@class='label-product']")).getText().contains(plan)) {
@@ -484,19 +591,10 @@ public class Payment {
 		
 		driver.get(CommonValues_Partners.PARTNER_URL + CommonValues_Partners.PAYMENT_URI + searchCardPayment_URI);
 		
+		comm2.waitForLoad(driver);
+		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='search-box-row active']")));
-		
-		if(driver.findElements(By.xpath("//button[@class='btn btn-table btn-danger payment-cancel']")).isEmpty()) {
-			List<WebElement> paging = driver.findElements(By.xpath("//div[@class='pagination']/li"));
-			
-			for(int i=1; i<paging.size(); i++) {
-				paging.get(i).findElement(By.xpath(".//a")).click();
-				if(driver.findElements(By.xpath("//button[@class='btn btn-table btn-danger payment-cancel']")).isEmpty()) {
-					paging.get(i+1).findElement(By.xpath(".//a")).click();
-				}
-			}
-		}
 		
 		List<WebElement> cancelbtn = driver.findElements(By.xpath("//button[@class='btn btn-table btn-danger payment-cancel']"));
 		
@@ -635,6 +733,64 @@ public class Payment {
 		} 
 	}
 	
+	@Test(priority= 21, enabled = true)
+	public void failPayment() throws Exception {
+		String failMsg = "";
+		
+		driver.get(CommonValues_Partners.PARTNER_URL + CommonValues_Partners.PAYMENT_URI + searchFailPayment_URI);
+
+		comm2.waitForLoad(driver);
+
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='search-box-row active']")));
+
+		List<WebElement> faillist = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+
+		for (int i = 0; i < faillist.size(); i++) {
+
+			if (!faillist.get(i).findElement(By.xpath(".//td[7]//span")).getText().contentEquals("실패")) {
+				failMsg = "Payment status is wrong [Rownum]" + (i + 1) + " [Actual]"
+						+ faillist.get(i).findElement(By.xpath(".//td[7]/span")).getText();
+			}
+		}
+
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority= 22, enabled = true)
+	public void failPayment_Tooltip() throws Exception {
+		String failMsg = "";
+
+		List<WebElement> faillist = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
+
+		Actions action = new Actions(driver);
+		WebElement tooltip = faillist.get(0).findElement(By.xpath(".//td[7]//span"));
+		Thread.sleep(1000);
+		action.moveToElement(tooltip).build().perform();
+		Thread.sleep(3000);
+
+		Boolean isToolTipDisplayed = driver.findElement(By.xpath("//div[@class='tooltip fade bottom in']"))
+				.isDisplayed();
+		System.out.println("Is Tooltip displayed ? : " + isToolTipDisplayed);
+
+		if (isToolTipDisplayed == true) {
+			String tooltipText = driver.findElement(By.xpath("//div[@class='tooltip fade bottom in']/div[2]"))
+					.getText();
+			System.out.println("Tooltip Text:- " + tooltipText);
+		} else {
+			Exception e = new Exception("Payment fail tooltip is not displayed");
+			throw e;
+		}
+
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
 	@AfterClass(alwaysRun = true)
 	public void tearDown() throws Exception {
 
@@ -679,7 +835,7 @@ public class Payment {
 
 			switch (i) {
 			case 1:
-				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText();
+				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText().toLowerCase();
 
 				if (!result.contentEquals(Companyname)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
@@ -688,9 +844,9 @@ public class Payment {
 				break;
 
 			case 2:
-				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText();
+				result = list.get(j).findElement(By.xpath(".//td[2]/a")).getText().toLowerCase();
 
-				if (!result.contentEquals(Companyname)) {
+				if (!result.contains(Companyname)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
 					throw e;
 				}
@@ -733,5 +889,43 @@ public class Payment {
 				}
 			}
 		}
+	
+	public String readExcelFile(String filepath, int x, int y) throws Exception {
+
+		File file = new File(filepath);
+		FileInputStream inputStream = new FileInputStream(file);
+		Workbook testDataWorkBook = new XSSFWorkbook(inputStream);
+		Sheet testDataSheet = testDataWorkBook.getSheetAt(0);
+
+		int rowCount = testDataSheet.getLastRowNum();
+		
+		if(rowCount == 0) {
+			testDataWorkBook.close();
+			return null;
+			
+		} else {
+			int cells = testDataSheet.getRow(0).getPhysicalNumberOfCells();
+
+			DataFormatter formatter = new DataFormatter();
+
+			String[][] data = new String[rowCount][cells];
+
+			for (int i = 0; i < rowCount; i++) {
+
+				// 첫 행 제외
+				Row row = testDataSheet.getRow(i + 1);
+
+				for (int j = 0; j < cells; j++) {
+					
+					Cell cell = row.getCell(j);
+					String a = formatter.formatCellValue(cell);
+
+					data[i][j] = a;
+				}
+			}
+			testDataWorkBook.close();
+			return data[x][y];
+		}
+	}
 
 }

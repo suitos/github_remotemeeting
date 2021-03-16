@@ -18,6 +18,24 @@ import org.testng.annotations.Test;
 
 import mandatory.CommonValues;
 
+/*
+ * 1.파트너 로그인
+ * 2.파트너사 관리 화면 이동
+ * 3.검색 기본값 확인
+ * 4.데이터 있는 문구 조건 검색 
+ * 5.데이터 없는 문구 조건 검색 
+ * 6.파트너사 목록 확인
+ * 7.파트너사 등록 선택
+ * 8.파트너사명 미입력 후 저장 
+ * 9.상위 파트너사로 등록 확인
+ * 10.상위 파트너사 선택 확인
+ * 11.파트너사 로고 형식에 맞지 않은 파일 등록
+ * 12.파트너사 로고 형식에 맞는 파일 등록
+ * 13.파트너사 등록
+ * 14.파트너사 상세정보로 이동
+ * 15.파트너사 삭제
+ */
+
 public class Partners {
 	
 	public static String SEARCH_BTN = "//button[@type='submit']";
