@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Suite">
+<parameter name="browser" value="Chrome_test"/>
+  <listeners>
+       <listener class-name="mandatory.TestListener"/>
+  </listeners>
+
+  <test name="Ready">
+  <parameter name="pkgname" value="partners"/>
+    <classes>
+     <class name="mandatory.StartTesting">
+      <methods>
+        <include name="clearSheet" />
+      </methods>
+    </class>
+    </classes>
+  </test>  
+  
+  <test name="partners.Home">
+    <classes>
+      <class name="partners.Home"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="partners.Company">
+    <classes>
+      <class name="partners.Company"/>
+    </classes>
+  </test>
+  
+  <test name="partners.Company2">
+    <classes>
+      <class name="partners.Company2"/>
+    </classes>
+  </test>
+  
+   <test name="partners.Partners">
+    <classes>
+      <class name="partners.Partners"/>
+    </classes>
+  </test>
+  
+   <test name="partners.History">
+    <classes>
+      <class name="partners.History"/>
+    </classes>
+  </test>
+  
+  <test name="partners.License">
+    <classes>
+      <class name="partners.License"/>
+    </classes>
+  </test>
+  
+  <test name="partners.Payment">
+    <classes>
+      <class name="partners.Payment"/>
+    </classes>
+  </test>
+  
+  <test name="partners.LogStats">
+    <classes>
+      <class name="partners.LogStats"/>
+    </classes>
+  </test>
+  
+  <test name="partners.QnA">
+    <classes>
+      <class name="partners.QnA"/>
+    </classes>
+  </test>
+  
+  <test name="partners.Mailsend">
+    <classes>
+      <class name="partners.Mailsend"/>
+    </classes>
+  </test>
+  
+  <test name="partners.BranchPartners">
+    <classes>
+      <class name="partners.BranchPartners"/>
+    </classes>
+  </test>
+
+  <test name="partners.Mypage">
+    <classes>
+      <class name="partners.Mypage"/>
+    </classes>
+  </test>
+
+  <test name="partners.Setting">
+    <classes>
+      <class name="partners.Setting"/>
+    </classes>
+  </test>
+  
+  <test name="partners.Setting2">
+    <classes>
+      <class name="partners.Setting2"/>
+    </classes>
+  </test>
+  
+  <test name="partners.Function">
+    <classes>
+      <class name="partners.Function"/>
+    </classes>
+  </test>
+  
+</suite> <!-- Suite -->
