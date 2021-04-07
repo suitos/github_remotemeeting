@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import io.appium.java_client.android.AndroidDriver;
@@ -71,14 +72,15 @@ public class Lounge {
 	CommonAndroid commA = new CommonAndroid();
 	CommonValues comm = new CommonValues();
 	
+	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
-	public void setUp(ITestContext context) throws Exception {
+	public void setUp(ITestContext context, String browsertype) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
 		
-		comm.setDriverProperty("Chrome_test");
+		comm.setDriverProperty(browsertype);
 
-		chromeDriver = comm.setDriver(chromeDriver, "Chrome_test", "lang=ko_KR", true);
+		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 
 		context.setAttribute("webDriver", androidDriver);
 		context.setAttribute("webDriver2", chromeDriver);

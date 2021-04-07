@@ -26,8 +26,8 @@ public class AttendeesList {
 	public static String ID_ROOM_PIP_GRIDLAYOUT = "com.rsupport.remotemeeting.application:id/active_speaker_user_pip_gridlayout";
 	public static String ID_ROOM_PIP_ADMINICON = "com.rsupport.remotemeeting.application:id/voice_admin_icon";
 	
-	public static String XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN = "//android.widget.RelativeLayout[12]";
-	public static String XPATH_ROOM_SIDEMENU_LEAVE_BTN = "//android.widget.RelativeLayout[13]";
+	public static String XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN = "//android.widget.TextView[@text='참여자 리스트']";
+	public static String XPATH_ROOM_SIDEMENU_LEAVE_BTN = "//android.widget.TextView[@text='나가기']";
 
 	public static String XPATH_ROOM_ATTENDEELIST = "//androidx.recyclerview.widget.RecyclerView/android.view.ViewGroup";
 	public static String XPATH_ROOM_ATTENDEELIST_MIC = ".//android.widget.ImageButton[1]";
@@ -39,7 +39,9 @@ public class AttendeesList {
 	public static List<String> usernames = null;
 	
 	public static WebDriver chromeDriver = null;
+	
 	CommonAndroid commA = new CommonAndroid();
+	CommonValues comm = new CommonValues();
 	
 	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
@@ -47,12 +49,10 @@ public class AttendeesList {
 		
 		androidDriver = commA.setAndroidDriver(0, true);
 		
-		if(browsertype == null || browsertype.contains("_test")) CommonValues.FOR_JENKINS = false;
-		
-		CommonValues comm = new CommonValues();
-		comm.setDriverProperty("Chrome");
+		comm.setDriverProperty(browsertype);
 
-		chromeDriver = comm.setDriver(chromeDriver, "Chrome", "lang=ko_KR", true);
+		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
+		
 		context.setAttribute("webDriver", chromeDriver);
 		context.setAttribute("webDriver2", androidDriver);
 		
@@ -94,9 +94,15 @@ public class AttendeesList {
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_LOUNGE_ROOM_PIP_SCREEN)));
 
 		androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+		
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+
+		commA.scrollToAnElementByText(element, "나가기");
+		
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		
 		//참여자 리스트 클릭 - 참여자 리스트 보고 다시 나가기
+		commA.scrollToAnElementByText(element, "참여자 리스트");
 		androidDriver.findElement(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_ATTENDEELIST)));
 		androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_ATTENDEELIST_LEAVE_ARROW)).click();
@@ -155,14 +161,22 @@ public class AttendeesList {
 		usernames.add(CommonValues.ADMINNICKNAME);
 		usernames.add("rmrsup1");
 		
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+
 		//참석한 유저 android에서 확인
 		wait.until(ExpectedConditions.numberOfElementsToBe(By.id(MobileShare.ID_ROOM_PIP_USERNAME), 2));
 		
 		//android 참여자 리스트 확인
 		if(!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			commA.scrollToAnElementByText(element, "나가기");
+			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		}
+		
+		
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
 		androidDriver.findElement(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_ATTENDEELIST)));
 		
@@ -208,14 +222,19 @@ public class AttendeesList {
 			chromeDriver.findElement(By.xpath("//div[@class='buttons align-center']/button[1]")).click();
 			
 		}
-		
 		//android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "나가기");
+			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		}
 		
 		// 사용자 리스트 클릭
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
 		androidDriver.findElement(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_ATTENDEELIST)));
 		
@@ -265,14 +284,20 @@ public class AttendeesList {
 			chromeDriver.findElement(By.xpath("//div[@class='buttons align-center']/button[1]")).click();
 			
 		}
-		
+	
 		//android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "나가기");
+			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		}
 		
 		// 사용자 리스트 클릭
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
 		androidDriver.findElement(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_ATTENDEELIST)));
 		
@@ -382,6 +407,9 @@ public class AttendeesList {
 		//android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "나가기");
+			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		}
 		
@@ -393,14 +421,10 @@ public class AttendeesList {
 			if(mobileElement.findElement(By.id(MobileShare.ID_ROOM_PIP_USERNAME)).getText().contentEquals(CommonValues.ADMINNICKNAME)) {
 				if(!findElement((AndroidElement)mobileElement, true, ID_ROOM_PIP_ADMINICON)) {
 					
-					String xpath = "//android.widget.RelativeLayout[%d]/android.widget.TextView";
-
-					for (int i = 10; i < 13; i++) {
-						if(androidDriver.findElement(By.xpath(String.format(xpath, i))).getText().contains("사회자")) {
-							androidDriver.findElement(By.xpath(String.format(xpath, i))).click();
-							break;
-						}
-					}
+					AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+					commA.scrollToAnElementByText(element, "사회자 모드");
+					androidDriver.findElement(By.xpath("//android.widget.TextView[@text='사회자 모드']")).click();
+					
 					wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_POPUP_BUTTON2)));
 					androidDriver.findElement(By.id(CommonAndroid.ID_POPUP_BUTTON2)).click();
 					break;
@@ -412,10 +436,17 @@ public class AttendeesList {
 		//android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "나가기");
+			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_LEAVE_BTN)));
 		}		
 		
+		
 		// 사용자 리스트 클릭
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
 		androidDriver.findElement(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_ATTENDEELIST)));
 		
@@ -493,6 +524,8 @@ public class AttendeesList {
 		// android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "참여자 리스트");
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)));
 		}
 		
@@ -559,6 +592,8 @@ public class AttendeesList {
 		// android 사이드 메뉴 보이지 않으면 클릭
 		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
 			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+			commA.scrollToAnElementByText(element, "참여자 리스트");
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_ROOM_SIDEMENU_ATTENDEELIST_BTN)));
 		}
 		
@@ -579,7 +614,7 @@ public class AttendeesList {
 		}
 	}
 	
-	boolean findElement(AndroidElement el, boolean isID, String subel) {
+	public static boolean findElement(AndroidElement el, boolean isID, String subel) {
 
 		try {
 			if(isID) {

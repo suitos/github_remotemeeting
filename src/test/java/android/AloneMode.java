@@ -19,29 +19,52 @@ import mandatory.CommonValues;
  * 1.방제 입력 없이 회의 개설 시도
  * 2.회의 개설
  * 3.pip not display 확인
- * 4.메뉴 열리는지 확인
- * 5.메뉴 확인
- * 6.카메라 끌 경우 카메라전환 버튼 비활성화 확인
- * 7.타이머 대기중 확인
- * 8.잠금 및 패스워드 길이 확인
- * 9.잠금 해제 확인
- * 10.초대창 확인
- * 11.그룹 클릭
- * 12.최근 목록탭 날짜 내림차순 확인
- * 13.최근목록 없을 경우 확인
- * 14.부서 및 전체 주소록 확인
- * 15.
- * 16.
- * 17.초대 레이아웃 닫기
- * 18.카메라 전환 클릭
- * 19.카메라 off
- * 20.카메라 on
- * 21.마이크 off
- * 22.마이크 on
- * 23.회의록 확인
- * 24.녹화 클릭
- * 25.메뉴 닫기 
- * 26.회의 나가기
+ * 4.외부 앱 공유 팝업 열리는지 확인
+ * 5.메뉴 열리는지 확인
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 10.메뉴 확인
+ * 11.카메라 끌 경우 카메라전환 버튼 비활성화 확인
+ * 12.타이머 대기중 확인
+ * 13.잠금 및 패스워드 길이 확인
+ * 14.잠금 해제 확인
+ * 15.초대창 확인
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 20.그룹 클릭
+ * 21.최근 목록탭 날짜 내림차순 확인
+ * 22.최근목록 없을 경우 확인
+ * 23.부서 및 전체 주소록 확인
+ * 24.초대 레이아웃 닫기
+ * 25.사회자 모드,참여자 리스트 enabled 확인
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 30.
+ * 31.카메라 전환 클릭
+ * 32.카메라 off
+ * 33.카메라 on
+ * 34.마이크 off
+ * 35.마이크 on
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 40.회의록 확인
+ * 41.녹화 클릭
+ * 42.메뉴 닫기
+ * 43.참여자 리스트 내 x버튼 확인
+ * 44.x버튼 클릭
+ * 45.회의 나가기
  */
 
 public class AloneMode {
@@ -56,13 +79,11 @@ public class AloneMode {
 	private static final String TOAST_MICON = "마이크가 켜졌습니다.";
 	private static final String TOAST_RECORD = "다른 사용자가 참여한 후 녹화를 시작 할 수 있습니다.";
 	
-	
 	private static String TITLE;
 	
 	public static AndroidDriver<AndroidElement> androidDriver = null;
 	
 	CommonAndroid commA = new CommonAndroid();
-	CommonValues comm = new CommonValues();
 	
 	@BeforeClass(alwaysRun = true)
 	public void setUp(ITestContext context) throws Exception {
@@ -109,6 +130,30 @@ public class AloneMode {
 			failMsg = failMsg + "Don't enter room";
 		}
 		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 3, enabled = true)
+	public void checkClipboard() throws Exception {
+		String failMsg = "";
+		
+		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/channel_info_other_link_button")).click();
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("android:id/contentPanel")));
+		
+		if(CommonAndroid.deviceLists.get(0)[2].contentEquals("google")) {
+			androidDriver.findElement(By.id("android:id/chooser_copy_button")).click();
+			
+		} else if(CommonAndroid.deviceLists.get(0)[2].contentEquals("samsung")) {
+			androidDriver.findElement(By.xpath("//android.widget.TextView[@text='복사']")).click();
+		} 
+		
+		Thread.sleep(1000);
+		
 		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/channel_info_close")).click();
 		
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/channel_info_invite_layout")));
@@ -119,7 +164,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 3, enabled = true)
+	@Test(priority = 4, enabled = true)
 	public void checkDisplay() throws Exception {
 		String failMsg = "";
 		
@@ -137,7 +182,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 4, enabled = true)
+	@Test(priority = 5, enabled = true)
 	public void checkMenulist() throws Exception {
 		String failMsg = "";
 		
@@ -156,7 +201,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 5, enabled = true)
+	@Test(priority = 10, enabled = true)
 	public void checkMenu() throws Exception {
 		String failMsg = "";
 		
@@ -178,9 +223,11 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 6, enabled = true)
+	@Test(priority = 11, enabled = true)
 	public void checkCamerachangeBtn() throws Exception {
 		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
 		
 		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
 		
@@ -189,6 +236,14 @@ public class AloneMode {
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='카메라']")).click();
 		
 		commA.CheckToastMsg(androidDriver, TOAST_CAMOFF);
+
+		//android 사이드 메뉴 보이지 않으면 클릭
+		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
+			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE)));
+		}
+		
+		commA.scrollToAnElementByText(element, "카메라 전환");
 		
 		if(!androidDriver.findElement(By.xpath("//android.widget.TextView[@text='카메라 전환']/..")).getAttribute("enabled").contentEquals("false")) {
 			failMsg = "CameraChange Btn is enabled!";
@@ -202,7 +257,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 7, enabled = true)
+	@Test(priority = 12, enabled = true)
 	public void checkTimer() throws Exception {
 		String failMsg = "";
 		
@@ -216,7 +271,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 8, enabled = true)
+	@Test(priority = 13, enabled = true)
 	public void checkLockandPWLength() throws Exception {
 		String failMsg = "";
 		
@@ -241,7 +296,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 9, enabled = true)
+	@Test(priority = 14, enabled = true)
 	public void checkUnlock() throws Exception {
 		String failMsg = "";
 		
@@ -265,7 +320,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 10, enabled = true)
+	@Test(priority = 15, enabled = true)
 	public void checkInvite() throws Exception {
 		String failMsg = "";
 		
@@ -291,7 +346,7 @@ public class AloneMode {
 		}
 	}	
 	
-	@Test(priority = 11, enabled = true)
+	@Test(priority = 20, enabled = true)
 	public void clickGroup() throws Exception {
 		String failMsg = "";
 		
@@ -310,7 +365,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 12, enabled = true)
+	@Test(priority = 21, enabled = true)
 	public void checkDateDESC() throws Exception {
 		String failMsg = "";
 		
@@ -343,7 +398,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 13, enabled = true)
+	@Test(priority = 22, enabled = true)
 	public void checkRecentlylist() throws Exception {
 		String failMsg = "";
 		
@@ -367,7 +422,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 14, enabled = true)
+	@Test(priority = 23, enabled = true)
 	public void checkAddressandDepartment() throws Exception {
 		String failMsg = "";
 		
@@ -403,6 +458,7 @@ public class AloneMode {
 		}
 		
 		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/title_header_arrow")).click();
+		Thread.sleep(1000);
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
@@ -410,17 +466,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 15, enabled = false)
-	public void a15() throws Exception {
-		String failMsg = "";
-	}
-	
-	@Test(priority = 16, enabled = false)
-	public void a16() throws Exception {
-		String failMsg = "";
-	}
-	
-	@Test(priority = 17, enabled = true)
+	@Test(priority = 24, enabled = true)
 	public void closeInvitelayout() throws Exception {
 		String failMsg = "";
 		
@@ -439,13 +485,63 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 18, enabled = true)
-	public void clickCamerachange() throws Exception {
-		
-		androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+	@Test(priority = 25, enabled = true)
+	public void checkMenuenabled() throws Exception {
+		String failMsg = "";
 		
 		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/menu_list")));
+	      
+		// android 초대 팝업 떠있으면 닫기
+		try {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_LOUNGE_ROOM_INVITE_LAYOUT)));
+			androidDriver.findElement(By.id(CommonAndroid.ID_LOUNGE_ROOM_INVITECLOSE_BTN)).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_LOUNGE_ROOM_PIP_SCREEN)));
+		} catch (Exception e) {
+			System.out.println("wait error : " + e);
+		}
+
+		// android 사이드 메뉴 보이지 않으면 클릭
+		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
+			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE)));
+		}
+		
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+
+		commA.scrollToAnElementByText(element, "사회자 모드");
+		
+		if(androidDriver.findElement(By.xpath("//android.widget.TextView[@text='사회자 모드']/../android.widget.ImageView")).getAttribute("enabled").contentEquals("false")) {
+			failMsg = failMsg + "\n1. 사회자 모드 : enabled false";
+		}
+		
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
+		if(androidDriver.findElement(By.xpath("//android.widget.TextView[@text='참여자 리스트']/..")).getAttribute("enabled").contentEquals("false")) {
+			failMsg = failMsg + "\n2. 참여자 리스트 : enabled false.";
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 30, enabled = false)
+	public void a30() throws Exception {
+		
+	}
+	
+	@Test(priority = 31, enabled = true)
+	public void clickCamerachange() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		
+		// android 사이드 메뉴 보이지 않으면 클릭
+		if (!commA.checkDisplay(androidDriver, By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE))) {
+			androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_ROOM_SIDEMENU_PINCODE)));
+		}
 		
 		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
 		
@@ -453,28 +549,56 @@ public class AloneMode {
 	
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='카메라 전환']")).click();
 		
-		commA.CheckToastMsg(androidDriver, TOAST_CAMCHANGE);
-	
+		wait.until(ExpectedConditions.presenceOfElementLocated((By.xpath(CommonAndroid.XPATH_ANDROID_TOAST))));
+
+		String toastMessage = androidDriver.findElement((By.xpath(CommonAndroid.XPATH_ANDROID_TOAST))).getText();
+		
+		System.out.println(toastMessage);
+		
+		if(!toastMessage.contentEquals(TOAST_CAMCHANGE)) {
+			failMsg = "Wrong ToastMsg [Expected]" + TOAST_CAMCHANGE + " [Actual]" + toastMessage;
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
-	@Test(priority = 19, enabled = true)
+	@Test(priority = 32, enabled = true)
 	public void clickCamOff_Alone() throws Exception {
+		String failMsg = "";
+		
 		Thread.sleep(3000);
 
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		
 		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
 
 		commA.scrollToAnElementByText(element, "카메라");
 		
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='카메라']")).click();
 		
-		commA.CheckToastMsg(androidDriver, TOAST_CAMOFF);
+		wait.until(ExpectedConditions.presenceOfElementLocated((By.xpath(CommonAndroid.XPATH_ANDROID_TOAST))));
+
+		String toastMessage = androidDriver.findElement((By.xpath(CommonAndroid.XPATH_ANDROID_TOAST))).getText();
 		
+		System.out.println(toastMessage);
+		
+		if(!toastMessage.contentEquals(TOAST_CAMOFF)) {
+			failMsg = "Wrong ToastMsg [Expected]" + TOAST_CAMOFF + " [Actual]" + toastMessage;
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
 	}
 	
-	@Test(priority = 20, enabled = true)
+	@Test(priority = 33, enabled = true)
 	public void clickCamOn_Alone() throws Exception {
 		
-		Thread.sleep(1500);
+		Thread.sleep(3000);
 		
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='카메라']")).click();
 		
@@ -482,7 +606,7 @@ public class AloneMode {
 		
 	}
 	
-	@Test(priority = 21, enabled = true)
+	@Test(priority = 34, enabled = true)
 	public void clickMicOff_Alone() throws Exception {
 		
 		Thread.sleep(3000);
@@ -493,7 +617,7 @@ public class AloneMode {
 		
 	}
 	
-	@Test(priority = 22, enabled = true)
+	@Test(priority = 35, enabled = true)
 	public void clickMicOn_Alone() throws Exception {
 		
 		Thread.sleep(3000);
@@ -504,7 +628,7 @@ public class AloneMode {
 		
 	}
 	
-	@Test(priority = 23, enabled = true)
+	@Test(priority = 40, enabled = true)
 	public void clickLog_Alone() throws Exception {
 		String failMsg = "";
 	
@@ -529,7 +653,7 @@ public class AloneMode {
 		}
 	}
 	
-	@Test(priority = 24, enabled = true)
+	@Test(priority = 41, enabled = true)
 	public void clickRecord_Alone() throws Exception {
 		
 		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
@@ -545,7 +669,7 @@ public class AloneMode {
 		
 	}
 	
-	@Test(priority = 25, enabled = true)
+	@Test(priority = 42, enabled = true)
 	public void closeMenu() throws Exception {
 		String failMsg = "";
 		
@@ -564,7 +688,61 @@ public class AloneMode {
 		}
 	}
 
-	@Test(priority = 26, enabled = true)
+	@Test(priority = 43, enabled = true)
+	public void checkXBtn() throws Exception {
+		String failMsg = "";
+	
+		androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/menu_list")));
+		
+		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
+
+		commA.scrollToAnElementByText(element, "참여자 리스트");
+		
+		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='참여자 리스트']")).click();
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/participants_list_search_edit_text")));
+		
+		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/participants_list_search_edit_text")).sendKeys("T");
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/participants_list_clean_search_text")));
+		
+		if(!androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/participants_list_clean_search_text")).isDisplayed()) {
+			failMsg = "Don't display X Btn";
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 44, enabled = true)
+	public void clickXBtn() throws Exception {
+		String failMsg = "";
+		
+		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/participants_list_clean_search_text")).click();
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		wait.until(ExpectedConditions.textToBePresentInElementLocated(By.id("com.rsupport.remotemeeting.application:id/participants_list_search_edit_text"), "이름 검색 필터"));
+		
+		if(!androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/participants_list_search_edit_text")).getText().contentEquals("이름 검색 필터")) {
+			failMsg = "Don't delete text [Expected] 이름 검색 필터 [Actual]" + androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/participants_list_search_edit_text")).getText();
+		}
+		
+		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/header_left_image_button")).click();
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
+	@Test(priority = 45, enabled = true)
 	public void clickExit_Alone() throws Exception {
 		String failMsg = "";
 		

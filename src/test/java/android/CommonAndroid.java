@@ -1,7 +1,6 @@
 package android;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -11,15 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Rectangle;
 import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -113,6 +108,7 @@ public class CommonAndroid {
 		cap.setCapability("automationName", "Appium");
 		cap.setCapability("appPackage", MEETING_PACKAGENAME); 
 		cap.setCapability("appActivity", MEETING_STARTACTIVITY); 
+		cap.setCapability("newCommandTimeout", 10000); 
 		//cap.setCapability("noReset", true); // 테스트전에 리셋할건지 여부(true/false)
 		
 		if (Permission == true) {
@@ -228,9 +224,8 @@ public class CommonAndroid {
 			try {
 				wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_ACCESSCODE_INPUT)));
 			} catch (Exception e) {
-				if(checkDisplay(androidDriver, By.id(CommonAndroid.ID_ACCESSCODE_INPUT)) == false) {
 					androidDriver.activateApp(CommonAndroid.MEETING_PACKAGENAME);
-				}
+				
 			}
 
 			System.out.println("current Activity(Main) : " + androidDriver.currentActivity());
@@ -405,10 +400,10 @@ public class CommonAndroid {
 	
 	public void CheckToastMsg(AndroidDriver<AndroidElement> androidDriver, String Toastmsg) throws Exception {
 		
-		WebDriverWait waitForToast = new WebDriverWait(androidDriver,25);
-		waitForToast.until(ExpectedConditions.presenceOfElementLocated(By.xpath("/hierarchy/android.widget.Toast")));
+		WebDriverWait waitForToast = new WebDriverWait(androidDriver,15);
+		waitForToast.until(ExpectedConditions.presenceOfElementLocated((By.xpath(XPATH_ANDROID_TOAST))));
 
-		String toastMessage = androidDriver.findElement((By.xpath("/hierarchy/android.widget.Toast"))).getText();
+		String toastMessage = androidDriver.findElement((By.xpath(XPATH_ANDROID_TOAST))).getText();
 		
 		System.out.println(toastMessage);
 		
@@ -417,8 +412,10 @@ public class CommonAndroid {
 			throw e;
 		}
 		
-		waitForToast.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("/hierarchy/android.widget.Toast")));
-		waitForToast.until(ExpectedConditions.invisibilityOf(androidDriver.findElement(By.xpath("/hierarchy/android.widget.Toast"))));
+		//waitForToast.until(ExpectedConditions.not(ExpectedConditions.presenceOfElementLocated((By.xpath(XPATH_ANDROID_TOAST)))));
+
+		waitForToast.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(XPATH_ANDROID_TOAST)));
+		waitForToast.until(ExpectedConditions.invisibilityOf(androidDriver.findElement(By.xpath(XPATH_ANDROID_TOAST))));
 
 	}
 	
@@ -486,7 +483,7 @@ public class CommonAndroid {
 			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/menu_list")));
 			
-			androidDriver.findElement(By.xpath("//android.widget.RelativeLayout[2]/android.widget.ImageView")).click();
+			androidDriver.findElement(By.xpath("//android.widget.TextView[@text='초대']")).click();
 			
 			wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/channel_info_invite_layout")));
 			
