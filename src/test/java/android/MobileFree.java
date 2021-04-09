@@ -8,6 +8,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import io.appium.java_client.android.AndroidDriver;
@@ -25,7 +26,7 @@ import mandatory.CommonValues;
  * 6.비밀번호 잠금 클릭 후 팝업 확인
  * 7.사회자 모드 클릭 후 팝업 확인
  * 8.녹화 버튼 클릭 후 결재 유도 팝업 확인
- * 9.
+ * 9.수동기록 탭 문구 확인
  * 10.회의록 클릭 후 AI기록 클릭 후 토스트 메세지 확인
  * 11.접속 코드 입력란 클릭 시 키보드 올라오는지 확인
  * 12.회의 참여 시 빈값,6자리 미만 값 입력 후 화살표 비활성화 확인
@@ -43,7 +44,8 @@ public class MobileFree {
 	private static String MSG_FREEPOPUP = "회의에서 사용할 닉네임을 입력하시기 바랍니다.(필수)";
 	
 	private static String TOAST_NICKNAME = "회의에서 사용 할 닉네임을 입력하세요.";
-	private static String TOAST_AI = "관리자 페이지에서 AI기록 제한을 제한없음으로 변경해야 합니다.";
+	//private static String TOAST_AI = "관리자 페이지에서 AI기록 제한을 제한없음으로 변경해야 합니다.";
+	private static String TOAST_AI = "Free 버전 회의에서는 사용하실 수 없습니다.";
 	
 	private static String ALERT_EXCESS = "회의 최대 인원수를 초과하여 참여할 수 없습니다.\n" + "[Code: 40226]";
 	
@@ -60,15 +62,16 @@ public class MobileFree {
 	CommonAndroid commA = new CommonAndroid();
 	CommonValues comm = new CommonValues();
 	
+	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
-	public void setUp(ITestContext context) throws Exception {
+	public void setUp(ITestContext context, String browsertype) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
 		androidDriver2 = commA.setAndroidDriver(1,true);
 		
-		comm.setDriverProperty("Chrome_test");
+		comm.setDriverProperty(browsertype);
 
-		chromeDriver = comm.setDriver(chromeDriver, "Chrome_test", "lang=ko_KR", true);
+		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 		
 		context.setAttribute("webDriver", chromeDriver);
 		context.setAttribute("webDriver2", androidDriver);
@@ -145,12 +148,18 @@ public class MobileFree {
 		androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/channel_info_other_link_button")).click();
 		
 		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("android:id/content")));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("android:id/contentPanel")));
 		
-		//단말별 분기처리해야함
-		androidDriver.findElement(By.id("android:id/chooser_copy_button")).click();
+		if(CommonAndroid.deviceLists.get(0)[2].contentEquals("google")) {
+			androidDriver.findElement(By.id("android:id/chooser_copy_button")).click();
+			
+		} else if(CommonAndroid.deviceLists.get(0)[2].contentEquals("samsung")) {
+			androidDriver.findElement(By.xpath("//android.widget.TextView[@text='복사']")).click();
+		} 
 		
 		Thread.sleep(1000);
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/channel_info_invite_layout")));
 		
 		url = commA.getInfo(androidDriver, 2);
 		code = commA.getInfo(androidDriver, 4);
@@ -292,12 +301,25 @@ public class MobileFree {
 		}
 	}
 	
-	@Test(priority = 10, enabled = true)
-	public void checkAITab() throws Exception {
-		
+	@Test(priority = 9, enabled = true)
+	public void checkManualTab() throws Exception {
+		String failMsg = "";
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='회의록']")).click();
 		
 		Thread.sleep(2000);
+		
+		if(!androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/minutes_notify_message")).getText().contentEquals("보기 기능만 제공합니다.")) {
+			failMsg = "Wrong Text [Expected] 보기 기능만 제공합니다. [Actaul]" + androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/minutes_notify_message")).getText();
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}	
+	}
+	
+	@Test(priority = 10, enabled = true)
+	public void checkAITab() throws Exception {
 		
 		androidDriver.findElement(By.xpath("//androidx.appcompat.app.ActionBar.e[@content-desc='AI기록']")).click();
 		

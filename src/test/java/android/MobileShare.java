@@ -16,6 +16,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import io.appium.java_client.MobileBy;
@@ -45,7 +46,16 @@ import mandatory.P2PFree_Share;
  * 21. 웹참석자가 문서공유 - 모바일 확인(토스트, 툴바)
  * 22. 문서공유중 pip 숨기기
  * 23. 문서공유중 pip 보이기
+ * 24. 문서공유중 그리기 툴박스 확인
+ * 25. 썸네일 눌러 페이지 이동 확인
+ * 26. < , > 버튼 클릭하여 페이지 이동 확인
  * 30. 웹참석자가 문서공유 종료
+ *  
+ *  
+ * 32.웹참석자가 화면공유 - 모바일 확인(토스트)
+ * 33.화면공유중 pip 숨기기
+ * 34.화면공유중 pip 보이기
+ * 35.웹찹석자가 화면공유 종료 - 모바일 확인(토스트)
  *  
  * 41. 모바일 회의록 공유 이메일 빈채로 공유 시도 - 토스트 확인
  * 42. 모바일 회의록 공유 잘못된 이메일 포맷으로 공유 시도 - 토스트 확인
@@ -76,8 +86,8 @@ public class MobileShare {
 	public static String ID_ROOM_NOTE_SHARE_BTN = "com.rsupport.remotemeeting.application:id/minutes_share_send_button_layout";
 	public static String ID_ROOM_NOTE_SHARE_EMAIL_INPUTBOX = "com.rsupport.remotemeeting.application:id/minutes_share_email_text";
 	
-	public static String XPATH_ROOM_SIDEMENU_DOC_BTN = "//android.widget.RelativeLayout[5]";
-	public static String XPATH_ROOM_SIDEMENU_NOTE_BTN = "//android.widget.RelativeLayout[6]";
+	public static String XPATH_ROOM_SIDEMENU_DOC_BTN = "//android.widget.TextView[@text='문서공유']";
+	public static String XPATH_ROOM_SIDEMENU_NOTE_BTN = "//android.widget.TextView[@text='회의록']";
 	
 	public static String XPATH_DOC_GALLERY_BTN = "//android.widget.HorizontalScrollView/android.widget.LinearLayout/android.widget.LinearLayout[2]";
 	
@@ -92,16 +102,18 @@ public class MobileShare {
 	public static WebDriver chromeDriver = null;
 	public static AndroidDriver<AndroidElement> androidDriver = null;
 
+	CommonValues comm = new CommonValues();
+	CommonAndroid commA = new CommonAndroid();
+	
+	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
-	public void setUp(ITestContext context) throws Exception {
+	public void setUp(ITestContext context, String browsertype) throws Exception {
 		
-		CommonAndroid commA = new CommonAndroid();
 		androidDriver = commA.setAndroidDriver(0,true);
 		
-		CommonValues comm = new CommonValues();
-		comm.setDriverProperty("Chrome");
+		comm.setDriverProperty(browsertype);
 
-		chromeDriver = comm.setDriver(chromeDriver, "Chrome", "lang=ko_KR", true);
+		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", chromeDriver);
 		context.setAttribute("webDriver2", androidDriver);
 		
@@ -122,7 +134,6 @@ public class MobileShare {
 	
 	@Test(priority = 1)
 	public void attendMeeting() throws Exception {
-		String failMsg = "";
 		
 		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(CommonAndroid.ID_ACCESSCODE_INPUT)));
@@ -594,7 +605,7 @@ public class MobileShare {
 		}
 	}
 	
-	@Test(priority = 21, dependsOnMethods = {"attendMeeting"}, enabled = false)
+	@Test(priority = 21, dependsOnMethods = {"attendMeeting"}, enabled = true)
 	public void webDocShare() throws Exception {
 		String failMsg = "";
 		
@@ -606,7 +617,7 @@ public class MobileShare {
 		
 		//웹에서 문서공유
 		CommonValues comm = new CommonValues();
-		comm.ShareDocument(chromeDriver, CommonValues.filetype.JPG);
+		comm.ShareDocument(chromeDriver, CommonValues.filetype.PPTX);
 			
 		//toast 확인
 		wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CommonAndroid.XPATH_ANDROID_TOAST)));
@@ -623,7 +634,7 @@ public class MobileShare {
 		}
 	}
 	
-	@Test(priority = 22, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = false)
+	@Test(priority = 22, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
 	public void webDocShare_hidePIP() throws Exception {
 		String failMsg = "";
 		
@@ -640,7 +651,7 @@ public class MobileShare {
 		}
 	}
 	
-	@Test(priority = 23, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = false)
+	@Test(priority = 23, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
 	public void webDocShare_showPIP() throws Exception {
 		String failMsg = "";
 		
@@ -657,7 +668,80 @@ public class MobileShare {
 		}
 	}
 	
-	@Test(priority = 30, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = false)
+	@Test(priority = 24, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
+	public void webDocShare_checkTool() throws Exception {
+		String failMsg = "";
+		
+		if(!androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/drawing_menu_expand_panel")).isDisplayed()) {
+			failMsg = "Drawing tool is not display";
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 25, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
+	public void webDocShare_checkMove() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+		List<AndroidElement> page = androidDriver.findElements(By.xpath("//android.widget.ListView//android.widget.Button"));
+		
+		//메뉴 버튼이랑 겹쳐 첫번째 페이지 클릭은 생략
+		for(int i = 1; i < page.size(); i++) {
+			
+			page.get(i).click();
+			
+			Thread.sleep(500);
+			wait.until(ExpectedConditions.attributeContains(By.xpath("//*[@resource-id='document-content']/android.widget.Image"), "text", Integer.toString(i+1)));
+			
+			if(!page.get(i).getText().contentEquals(androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText())) {
+				failMsg = "Don't move page [Expected page num]" + page.get(i).getText() + " [Actual page num]" + androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText();
+			}
+			
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	//1페이지 텍스트가 이상하게 잡혀 prev next 한번씩만
+	@Test(priority = 26, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
+	public void webDocShare_checkMoveBtn() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+		List<AndroidElement> page = androidDriver.findElements(By.xpath("//android.widget.ListView//android.widget.Button"));
+		
+		androidDriver.findElement(By.xpath("//*[@resource-id='btn-prev']")).click();
+
+		wait.until(ExpectedConditions.attributeContains(By.xpath("//*[@resource-id='document-content']/android.widget.Image"), "text", "2"));
+		Thread.sleep(500);
+		
+		if(!page.get(1).getText().contentEquals(androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText())) {
+			failMsg = "Don't work Prev Btn [Expected page num]" + page.get(1).getText() + " [Actual page num]" + androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText();
+		}
+				
+		androidDriver.findElement(By.xpath("//*[@resource-id='btn-next']")).click();
+		
+		wait.until(ExpectedConditions.attributeContains(By.xpath("//*[@resource-id='document-content']/android.widget.Image"), "text", "3"));
+		
+		if(!page.get(2).getText().contentEquals(androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText())) {
+			failMsg = "Don't work Next Btn [Expected page num]" + page.get(2).getText() + " [Actual page num]" + androidDriver.findElement(By.xpath("//*[@resource-id='document-content']/android.widget.Image")).getText();
+		}
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}	
+	}
+	
+	@Test(priority = 30, dependsOnMethods = {"attendMeeting", "webDocShare"}, enabled = true)
 	public void webDocShare_close() throws Exception {
 		String failMsg = "";
 		
@@ -669,6 +753,85 @@ public class MobileShare {
 		chromeDriver.findElement(By.xpath(P2PFree_Share.XPATH_CLOSE_BTN)).click();
 		
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(ID_ROOM_DRAWCUSOR_BTN)));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 32, dependsOnMethods = {"attendMeeting"}, enabled = true)
+	public void webScreenShare() throws Exception {
+		String failMsg = "";
+		//토스트 없어질때까지 대기
+		Thread.sleep(3000);
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+		chromeDriver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
+		
+		//toast 확인
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CommonAndroid.XPATH_ANDROID_TOAST)));
+		String msg = androidDriver.findElement(By.xpath(CommonAndroid.XPATH_ANDROID_TOAST)).getText();
+		if(!msg.contains("시작 했습니다.")) {
+			failMsg = failMsg + "\n1. toast message. expected to include text : 시작 했습니다. [Actual]" + msg;
+		}
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/conference_pip_status_share_pc")));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 33, dependsOnMethods = {"attendMeeting"}, enabled = true)
+	public void webScreenShare_hidePIP() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+		//click pip button
+		androidDriver.findElement(By.id(ID_ROOM_PIP_BTN)).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id(ID_ROOM_NORMALPIP_LAYOUT)));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 34, dependsOnMethods = {"attendMeeting"}, enabled = true)
+	public void webScreenShare_showkPIP() throws Exception {
+		String failMsg = "";
+	
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+		//click pip button
+		androidDriver.findElement(By.id(ID_ROOM_PIP_BTN)).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(ID_ROOM_NORMALPIP_LAYOUT)));
+
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e =  new Exception(failMsg);
+	    	throw e;
+		}
+	}
+	
+	@Test(priority = 35, dependsOnMethods = {"attendMeeting", "webScreenShare"}, enabled = true)
+	public void webScreenShare_checkToastMsg() throws Exception {
+		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(androidDriver, 10);
+		
+
+		chromeDriver.findElement(By.xpath(CommonValues.XPATH_SHARESCREEN_BTN)).click();
+		
+		//toast 확인
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(CommonAndroid.XPATH_ANDROID_TOAST)));
+		String msg = androidDriver.findElement(By.xpath(CommonAndroid.XPATH_ANDROID_TOAST)).getText();
+		if(!msg.contains("종료했습니다.")) {
+			failMsg = failMsg + "\n1. toast message. expected to include text : 종료했습니다. [Actual]" + msg;
+		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e =  new Exception(failMsg);
@@ -788,6 +951,7 @@ public class MobileShare {
 		chromeDriver.quit();
 		androidDriver.quit();
 	}
+	
 }
 
 

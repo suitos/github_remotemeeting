@@ -6,7 +6,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import io.appium.java_client.android.AndroidDriver;
@@ -39,13 +38,11 @@ public class MobileLogin {
 	
 	CommonAndroid commA = new CommonAndroid();
 	
-	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
-	public void setUp(ITestContext context, String browsertype) throws Exception {
+	public void setUp(ITestContext context) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0, true);
 		commA.setServer(androidDriver);
-		if(browsertype == null || browsertype.contains("_test")) CommonValues.FOR_JENKINS = false;
 		
 		context.setAttribute("webDriver", androidDriver);
 		

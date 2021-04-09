@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.android.AndroidElement;
-import mandatory.CommonValues;
 
 /*
  * 1.하단 데모 배너 확인
@@ -43,15 +42,12 @@ public class MobileDemo {
 	public static AndroidDriver<AndroidElement> androidDriver = null;
 	
 	CommonAndroid commA = new CommonAndroid();
-	CommonValues comm = new CommonValues();
 	
 	@BeforeClass(alwaysRun = true)
 	public void setUp(ITestContext context) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
 		
-		comm.setDriverProperty("Chrome_test");
-
 		context.setAttribute("webDriver", androidDriver);
 		
 		commA.setServer(androidDriver);
@@ -159,7 +155,7 @@ public class MobileDemo {
 	@Test(priority = 6, enabled = true)
 	public void wait20s() throws Exception {
 		
-		TimeUnit.SECONDS.sleep(20);
+		TimeUnit.SECONDS.sleep(60);
 	}
 	
 	@Test(priority = 7, enabled = true)
@@ -320,6 +316,8 @@ public class MobileDemo {
 		AndroidElement element = androidDriver.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
 
 		commA.scrollToAnElementByText(element, "나가기");
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//android.widget.TextView[@text='나가기']")));
 		
 		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='나가기']")).click();
 		

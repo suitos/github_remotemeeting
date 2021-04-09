@@ -9,6 +9,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import io.appium.java_client.android.AndroidDriver;
@@ -67,15 +68,16 @@ public class MobileFree2 {
 	CommonAndroid commA = new CommonAndroid();
 	CommonValues comm = new CommonValues();
 	
+	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
-	public void setUp(ITestContext context) throws Exception {
+	public void setUp(ITestContext context, String browsertype) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
 		androidDriver2 = commA.setAndroidDriver(1,true);
 		
-		comm.setDriverProperty("Chrome_test");
+		comm.setDriverProperty(browsertype);
 
-		chromeDriver = comm.setDriver(chromeDriver, "Chrome_test", "lang=ko_KR", true);
+		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 		
 		context.setAttribute("webDriver", androidDriver);
 		context.setAttribute("webDriver2", androidDriver2);
@@ -294,7 +296,7 @@ public class MobileFree2 {
 	}
 	
 	@Test(priority = 12, enabled = true)
-	public void clickRecord_PayAcount() throws Exception {
+	public void clickRecord_PayAccount() throws Exception {
 		
 		androidDriver2.findElement(By.xpath("//android.widget.TextView[@text='녹화']")).click();
 		
@@ -302,7 +304,7 @@ public class MobileFree2 {
 	}
 	
 	@Test(priority = 13, enabled = true)
-	public void clickMode_PayAcount() throws Exception {
+	public void clickMode_PayAccount() throws Exception {
 		String failMsg = "";
 		
 		AndroidElement element = androidDriver2.findElement(By.id("com.rsupport.remotemeeting.application:id/menu_list"));
@@ -524,10 +526,30 @@ public class MobileFree2 {
 		
 		comm.waitForLoad(chromeDriver);
 		
+		if(comm.isAlertPresent(chromeDriver) == true) {
+			wait2.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_FREECREATE_BTN)));
+			
+			chromeDriver.findElement(By.xpath(CommonValues.XPATH_FREECREATEATTEND_BTN)).click();
+			Thread.sleep(2000);
+			
+			for (int i = 0; i < code.length(); i++) {
+				chromeDriver.findElement(By.xpath("//section[@id='gateway']//form/input")).sendKeys(code.substring(i, i+1));
+		          Thread.sleep(1000);
+			}
+		          
+			chromeDriver.findElement(By.xpath(CommonValues.XPATH_FREECREATEATTEND_BTN)).click();
+			
+			wait2.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_FREECREATESUBMIT_BTN)));
+			
+			chromeDriver.findElement(By.xpath(CommonValues.XPATH_FREECREATE_INPUT)).sendKeys(NICKNAME);
+			chromeDriver.findElement(By.xpath(CommonValues.XPATH_FREECREATESUBMIT_BTN)).click();
+			
+			comm.waitForLoad(chromeDriver);
+			
+		}
+			
 		wait2.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath("//section[@id='conference-wrap']")));
 		wait2.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
-		wait2.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: none;"));
-		
 		
 		if(!chromeDriver.getCurrentUrl().contains(CommonValues.MEETING_URL + CommonValues.ROOM_URL)) {
 			failMsg = "Wrong URL [Expected]" + CommonValues.MEETING_URL + CommonValues.ROOM_URL + " [Actual]" + chromeDriver.getCurrentUrl();
@@ -550,11 +572,11 @@ public class MobileFree2 {
 		
         src = chromeDriver.findElement(By.xpath("//article[@id='document-content']/img")).getAttribute("src");
         System.out.println(src);
-        
+        /*
 		if(!src.contains(androidDriver.findElement(By.xpath("//android.widget.Image")).getText())) {
-			failMsg = "Wrong src";
+			failMsg = "Wrong src + [Expected]" + src + " [Actual]" + androidDriver.findElement(By.xpath("//android.widget.Image")).getText();
 		}
-		
+		*/
 		if(!androidDriver.findElement(By.xpath("//android.widget.Image")).isDisplayed()) {
 			failMsg = failMsg + "\n2.Image is not display" + src;
 		}
@@ -567,11 +589,12 @@ public class MobileFree2 {
 	
 	@Test(priority = 22, enabled = true)
 	public void FinishShareDoc_Web() throws Exception {
-
+		WebDriverWait wait = new WebDriverWait(chromeDriver, 20);
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//button[@id='doc-close']")));
+		  
 		chromeDriver.findElement(By.xpath("//button[@id='doc-close']")).click();
 		
-		WebDriverWait wait = new WebDriverWait(chromeDriver, 20);
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//article[@id='document-content']/img")));
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//article[@id='document-content']/img")));
 		
         WebDriverWait wait2 = new WebDriverWait(androidDriver, 20);
         wait2.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//android.widget.Image")));
@@ -581,13 +604,14 @@ public class MobileFree2 {
 	@Test(priority = 23, enabled = true)
 	public void ShareDoc_Mobile() throws Exception {
 		String failMsg = "";
+		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
+		wait.until(ExpectedConditions.elementToBeClickable(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)));
 		
 		androidDriver.findElement(By.id(CommonAndroid.ID_ROOM_SIDEMENU_BTN)).click();
 		
-		WebDriverWait wait = new WebDriverWait(androidDriver, 20);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/menu_list")));
 		
-		androidDriver.findElement(By.xpath("//android.widget.RelativeLayout[6]/android.widget.ImageView")).click();
+		androidDriver.findElement(By.xpath("//android.widget.TextView[@text='문서공유']")).click();
 		
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("com.rsupport.remotemeeting.application:id/popup_cardView")));
 		
@@ -604,11 +628,11 @@ public class MobileFree2 {
 		
 		src = chromeDriver.findElement(By.xpath("//article[@id='document-content']/img")).getAttribute("src");
 		System.out.println(src);
-		
+		/*
 		if(!src.contains(androidDriver.findElement(By.xpath("//android.widget.Image")).getText())) {
-			failMsg = "Wrong src";
+			failMsg = "Wrong src [Expected]" + src + " [Actual]" + androidDriver.findElement(By.xpath("//android.widget.Image")).getText();
 		}
-		
+		*/
 		if(!androidDriver.findElement(By.xpath("//android.widget.Image")).isDisplayed()) {
 			failMsg = failMsg + "\n2.Image is not display";
 		}
@@ -631,11 +655,16 @@ public class MobileFree2 {
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) 
 			filePath = CommonValues.TESTFILE_PATH_MAC;
 		String addedfile = filePath + CommonValues.TESTFILE_LIST[i];
+		
+		WebDriverWait wait = new WebDriverWait(driver, 20);
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_ROOM_DOCSHARE_BTN)));
+		
+		driver.findElement(By.xpath(CommonValues.XPATH_ROOM_DOCSHARE_BTN)).click();
+		
 		driver.findElement(By.xpath("//input[@id='doc-upload-input']")).sendKeys(addedfile);
 		Thread.sleep(2000);
 		
-		WebDriverWait wait = new WebDriverWait(driver, 20);
-        wait.until(ExpectedConditions.attributeContains(driver.findElement(By.xpath("//div[@id='doc-tools']")), "class", "visible"));
+		wait.until(ExpectedConditions.attributeContains(driver.findElement(By.xpath("//div[@id='doc-tools']")), "class", "visible"));
 		wait.until(ExpectedConditions.textToBePresentInElementLocated(By.xpath("//span[@id='doc-count']"), Integer.toString(j)));
 		
 		Thread.sleep(2000);
