@@ -11,6 +11,7 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
+import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
@@ -140,6 +141,8 @@ public class Mailsend {
 		
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='search-box-row active']")));
 		
+		driver.findElement(By.xpath("//button[@id='halfYear']")).click();
+		
 		changeSearchcondition(1,2);
 		checkData(5, "회의초대");
 		
@@ -262,60 +265,104 @@ public class Mailsend {
 
 			switch (i) {
 			case 1:
-				result = list.get(j).findElement(By.xpath(".//td[2]")).getText();
 
-				if (!result.contentEquals(Companyname)) {
-					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-					throw e;
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[2]")).getText();
+
+					if (!result.contentEquals(Companyname)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
 				}
 				break;
 
 			case 2:
-				result = list.get(j).findElement(By.xpath(".//td[2]")).getText();
 
-				if (!result.contentEquals(Companyname)) {
-					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-					throw e;
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[2]")).getText();
+
+					if (!result.contentEquals(Companyname)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
 				}
 				break;
 
 			case 3:
-				
-				result = list.get(j).findElement(By.xpath(".//td[4]")).getText();
 
-				if (!result.contentEquals(data)) {
-					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-					throw e;
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[4]")).getText();
+
+					if (!result.contentEquals(data)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
 				}
 				break;
 
 			case 4:
-			
-			result = list.get(j).findElement(By.xpath(".//td[5]")).getText();
 
-			if (!result.contentEquals(data)) {
-				Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-				throw e;
-			}
-			break;
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[5]")).getText();
+
+					if (!result.contentEquals(data)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
+				}
+				break;
 
 			case 5:
-			
-			result = list.get(j).findElement(By.xpath(".//td[3]")).getText();
 
-			if (!result.contentEquals(data)) {
-				Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-				throw e;
-			}
-			break;
-			
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[3]")).getText();
+
+					if (!result.contentEquals(data)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
+				}
+				break;
+
 			case 6:
-				
-				result = list.get(j).findElement(By.xpath(".//td[6]")).getText();
 
-				if (!result.contentEquals(data)) {
-					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
-					throw e;
+				if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText()
+						.contentEquals("데이터가 없습니다.")) {
+					throw new SkipException("This test is skip");
+
+				} else {
+					result = list.get(j).findElement(By.xpath(".//td[6]")).getText();
+
+					if (!result.contentEquals(data)) {
+						Exception e = new Exception(
+								"Wrong data [RowNum]" + (j + 1) + "[SearchData]" + data + "[Data]" + result);
+						throw e;
+					}
 				}
 				break;
 

@@ -1,14 +1,7 @@
 package partners;
 
 import java.io.File;
-import java.io.FileInputStream;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DataFormatter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -63,7 +56,7 @@ public class CommonValues_Partners {
 
 	public static String PW = "111111";
 	
-	public static String TESTFILE_LIST[] = {"user-list.xlsx", "wrong-user-list.xlsx" };
+	public static String TESTFILE_LIST[] = {"user-list.xlsx", "wrong-user-list.xlsx", "wrong-user-list2.xlsx" };
 	
 	public void login(WebDriver driver, String ID, String PW) throws Exception {
 		
@@ -112,27 +105,32 @@ public class CommonValues_Partners {
 			return false;
 		}
 	}
+	public void checkExcelFile(String filename) throws Exception {
+		String os = System.getProperty("os.name").toLowerCase();
+		String path = "";
+		
+		String home = System.getProperty("user.home");
+		if (os.contains("windows")) {
+
+			path = home + "\\Downloads\\" + filename + ".xlsx";
+			File file = new File(path);
+
+			if (file.exists()) {
+				deleteExcelFile(path);
+			}
+
+		}
+	}
 	
 	public String Excelpath(String filename) {
 		String os = System.getProperty("os.name").toLowerCase();
 		String path = "";
-		int num = 1;
 		
 		String home = System.getProperty("user.home");
 		if (os.contains("windows")) {
-			
-			path = home + "\\Downloads\\" + filename + ".xlsx";
-			File file = new File(path);
 
-			if (!file.exists()) {
-				while (true) {
-					num++;
-					path = home + "\\Downloads\\" + filename + " (" + num + ").xlsx";
-					File file2 = new File(path);
-					if (file2.exists())
-						break;
-					}
-			} 
+			path = home + "\\Downloads\\" + filename + ".xlsx";
+
 		} else {
 			path = home + "/Downloads/" + filename + ".xlsx";
 		}

@@ -170,6 +170,8 @@ public class LogStats {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "사용현황"));
 
+		comm.checkExcelFile("conference-log-stats");
+		
 		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		int ROWcount = rows.size();
 		List<WebElement> column = driver.findElements(By.xpath("//tr[1]/td"));
@@ -187,8 +189,7 @@ public class LogStats {
 		for (int i = 0; i < ROWcount; i++) {
 			for (int j = 0; j < Columncount; j++) {
 				
-				data[i][j] = rows.get(i)
-						.findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
+				data[i][j] = rows.get(i).findElement(By.xpath( ".//td[" + (j + 1) + "]")).getText();
 				Thread.sleep(100);
 				
 				String webD = data[i][j];
@@ -240,7 +241,7 @@ public class LogStats {
 				driver.findElement(By.xpath("//div[@class='datepicker-days']//th[@class='prev']")).click();
 			}
 		
-			driver.findElement(By.xpath("//tr[1]/td[text()='1']")).click();
+			driver.findElement(By.xpath("//tr/td[@class='new day'][text()='1']")).click();
 			driver.findElement(By.xpath("//button[@type='submit']")).click();
 			comm2.waitForLoad(driver);
 			

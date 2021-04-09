@@ -26,6 +26,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestContext;
+import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Parameters;
@@ -96,8 +97,8 @@ import mandatory.CommonValues;
  * 60.데모 사용자 생성 후 버튼 사라짐 확인
  * 60.사용자 > 엑셀파일로 일괄 등록 버튼 선택 후 팝업 확인 후 양식 다운로드
  * 61.엑셀 업로드
- * 62.
- * 63.잘못된 서식 파일 업로드 후 메세지 확인
+ * 62.잘못된 서식 파일 업로드 후 메세지 확인
+ * 63.필수값 누락된 파일 업로드 후 메세지 확인
  * 64.중복된 이메일이 입력된 엑셀 파일 업로드
  * 65.올바른 엑셀 파일 업로드
  * 66.사용자 > 신규 등록 선택 후 팝업 확인 및 이메일 미입력 후 중복 확인 선택
@@ -1076,6 +1077,8 @@ public class Company {
 		
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//td/a")), CompanyName));
 		
+		comm.checkExcelFile("company-list");
+		
 		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		int ROWcount = rows.size();
 		List<WebElement> column = driver.findElements(By.xpath("//td"));
@@ -1335,8 +1338,8 @@ public class Company {
 		driver.findElement(By.xpath("//select[@id='year-select']")).click();
 		driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).click();
 		
-		if(!driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText().contentEquals("1 년 ")) {
-			failMsg = failMsg + "\n2.Year option is wrong + [Expected] 1년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText();
+		if(!driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText().contentEquals("1 년")) {
+			failMsg = failMsg + "\n2.Year option is wrong + [Expected] 1 년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText();
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -1479,14 +1482,14 @@ public class Company {
 		driver.findElement(By.xpath("//select[@id='year-select']/option[2]")).click();
 		
 		if(!driver.findElement(By.xpath("//select[@id='year-select']/option[2]")).getText().contentEquals("2 년")) {
-			failMsg = "Year option is wrong + [Expected] 2년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[2]")).getText();
+			failMsg = "Year option is wrong + [Expected] 2 년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[2]")).getText();
 		}
 		
 		driver.findElement(By.xpath("//select[@id='year-select']")).click();
 		driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).click();
 		
-		if(!driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText().contentEquals("1 년 ")) {
-			failMsg = failMsg + "\n2.Year option is wrong + [Expected] 1년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText();
+		if(!driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText().contentEquals("1 년")) {
+			failMsg = failMsg + "\n2.Year option is wrong + [Expected] 1 년  [Actual]" + driver.findElement(By.xpath("//select[@id='year-select']/option[1]")).getText();
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -1536,12 +1539,12 @@ public class Company {
 		
 		List <WebElement> td = driver.findElements(By.xpath("//tbody[@id='handleTableLicenseRow']/tr[1]/td"));
 		
-		if (!td.get(2).getText().contentEquals("회의실 요금제 - 5")) {
-			failMsg = "Plan is wrong [Expected] 회의실 요금제 - 5 [Actual]" + td.get(2).getText();
+		if (!td.get(2).getText().contentEquals("회의실 요금제 - 1")) {
+			failMsg = "Plan is wrong [Expected] 회의실 요금제 - 1 [Actual]" + td.get(2).getText();
 		}
 
-		if (!td.get(3).getText().contentEquals("15")) {
-			failMsg = failMsg + "\n2.Amount is wrong [Expected] 15 [Actual]" + td.get(3).getText();
+		if (!td.get(3).getText().contentEquals("11")) {
+			failMsg = failMsg + "\n2.Amount is wrong [Expected] 11 [Actual]" + td.get(3).getText();
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -1711,7 +1714,7 @@ public class Company {
 			failMsg = "Import user Popup is not display";
 		}
 		
-		driver.findElement(By.xpath("//section/div/a")).click();
+		driver.findElement(By.xpath("//a[@alt='엑셀 양식 다운로드']")).click();
 		//download excel
 		
 		TimeUnit.SECONDS.sleep(5);
@@ -1731,7 +1734,7 @@ public class Company {
 		}
 	}
 	
-	@Test(priority= 63, enabled = true)
+	@Test(priority= 62, enabled = true)
 	public void uploadWrongFile() throws Exception {
 		String failMsg = "";
 		
@@ -1746,7 +1749,7 @@ public class Company {
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='file-drag-area attatched']")), mandatory.CommonValues.TESTFILE_LIST[0]));
 		
 		driver.findElement(By.xpath("//form[@id='formUserList']//div[2]/button[1]")).click();
-		
+		Thread.sleep(2000);
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//span[@id='uploadFile-error']")), "엑셀파일만 업로드 가능합니다."));
 		
 		if(!driver.findElement(By.xpath("//span[@id='uploadFile-error']")).getText().contentEquals("엑셀파일만 업로드 가능합니다.")) {
@@ -1754,7 +1757,7 @@ public class Company {
 		}
 		
 		driver.findElement(By.xpath("//section/div[2]/button[2]")).click();
-		
+		Thread.sleep(2000);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-content']")));
 		
 		if(!driver.findElements(By.xpath("//div[@class='modal-content']")).isEmpty()) {
@@ -1766,7 +1769,47 @@ public class Company {
 			throw e;
 		}
 	}
+	//필수값 누락
+	@Test(priority= 63, enabled = true)
+	public void uploadOmissionFile() throws Exception {
+		String failMsg = "";
 		
+		driver.findElement(By.xpath("//button[@class='btn btn-primary btn-table excel']")).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='modal-content']")));
+		
+		String filePath = mandatory.CommonValues.TESTFILE_PATH;
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) 
+			filePath = mandatory.CommonValues.TESTFILE_PATH_MAC;
+		String addedfile = filePath + CommonValues_Partners.TESTFILE_LIST[2];
+		driver.findElement(By.xpath("//input[@name='uploadFile']")).sendKeys(addedfile);
+		Thread.sleep(2000);
+		
+		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='file-drag-area attatched']")), CommonValues_Partners.TESTFILE_LIST[2]));
+		
+		driver.findElement(By.xpath("//form[@id='formUserList']//div[2]/button[1]")).click();
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id='importExcel']//section[2]//p")));
+		
+		if(!driver.findElement(By.xpath("//*[@id='importExcel']//section[2]//p")).getText().contentEquals("누락된 필수값을 확인하세요.")) {
+			failMsg = "Wrong error Msg [Expected] 누락된 필수값을 확인하세요. [Actual]" + driver.findElement(By.xpath("//*[@id='importExcel']//section[2]//p")).getText();
+		}
+		
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id='importExcel']//section[2]//button")));
+		
+		driver.findElement(By.xpath("//*[@id='importExcel']//section[2]//button")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-content']")));
+		
+		comm2.waitForLoad(driver);
+		Thread.sleep(3000);
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
+	
 	@Test(priority= 64, enabled = true)
 	public void uploadWronguserList() throws Exception {
 		String failMsg = "";
@@ -1781,20 +1824,24 @@ public class Company {
 			filePath = mandatory.CommonValues.TESTFILE_PATH_MAC;
 		String addedfile = filePath + CommonValues_Partners.TESTFILE_LIST[1];
 		driver.findElement(By.xpath("//input[@name='uploadFile']")).sendKeys(addedfile);
-		Thread.sleep(2000);
-		
+
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='file-drag-area attatched']")), CommonValues_Partners.TESTFILE_LIST[1]));
 		
 		driver.findElement(By.xpath("//form[@id='formUserList']//div[2]/button[1]")).click();
 		
-		Thread.sleep(2000);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//p[@class='error-text']")));
 		
-		if(!driver.findElement(By.xpath("//section[2]//p")).getText().contentEquals("오류로 인해 아래 리스트의 사용자 등록이 실패하였습니다.")) {
-			failMsg = "Wrong msg [Expected] 오류로 인해 아래 리스트의 사용자 등록이 실패하였습니다. [Actual]" + driver.findElement(By.xpath("//section[2]//p")).getText();
+		if(!driver.findElement(By.xpath("//p[@class='error-text']")).getText().contentEquals("오류로 인해 아래 리스트의 사용자 등록이 실패하였습니다. (총: 2건, 실패: 1건)\n" + 
+				"- 이미 계정이 등록되어 있거나 파일 안에 중복된 데이터입니다.")) {
+			failMsg = "Wrong msg [Expected] 오류로 인해 아래 리스트의 사용자 등록이 실패하였습니다. (총: 1건, 실패: 1건) - 이미 계정이 등록되어 있거나 파일 안에 중복된 데이터입니다. [Actual]" + driver.findElement(By.xpath("//p[@class='error-text']")).getText();
 		}
 		
-		driver.findElement(By.xpath("//div//section[2]/div[2]/button")).click();
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id='importExcel']//section[1]//button")));
 		
+		driver.findElement(By.xpath("//*[@id='importExcel']//section[1]//button")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='modal-content']")));
+		
+		comm2.waitForLoad(driver);
 		Thread.sleep(3000);
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -2251,7 +2298,7 @@ public class Company {
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "고객사 관리"));
 		
 	}
-		
+	
 	@AfterClass(alwaysRun = true)
 	public void tearDown() throws Exception {
 
@@ -2289,9 +2336,8 @@ public class Company {
 	 }
 	
 	public void checkData(int datanum, String data) throws Exception {
-		if (driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr")).isEmpty()) {
-			Exception e = new Exception("null data");
-			throw e;
+		if (driver.findElement(By.xpath("//tbody[@id='companyListWrapper']//td")).getText().contentEquals("데이터가 없습니다.")) {
+			throw new SkipException("This test is skip");
 
 		} else {
 			List<WebElement> list = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));

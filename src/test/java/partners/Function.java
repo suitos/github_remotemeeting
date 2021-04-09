@@ -217,7 +217,7 @@ public class Function {
 		comm2.waitForLoad(Con_driver);
 		
 		if(!Con_driver.findElement(By.xpath("//input[@id='customAdress']")).getAttribute("value").contentEquals(URI + "1234")) {
-			failMsg = failMsg + "\n3.Don't changed";
+			failMsg = failMsg + "\n3.Don't changed [Expected]" + Con_driver.findElement(By.xpath("//input[@id='customAdress']")).getAttribute("value") + " [Actual] test1231234";
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {

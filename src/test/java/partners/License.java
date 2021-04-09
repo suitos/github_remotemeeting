@@ -383,6 +383,8 @@ public class License {
 	public void excelLicense() throws Exception {
 		String failMsg = "";
 		
+		comm.checkExcelFile("license-list");
+		
 		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		int ROWcount = rows.size();
 		List<WebElement> column = driver.findElements(By.xpath("//tr[1]/td"));
@@ -807,20 +809,20 @@ public class License {
 			failMsg = failMsg + "\n4.Default Enddate Value is wrong [Expected]" + today + " [Actual]" + driver.findElement(By.xpath("//td[4]/input[@class='payment-update-datepicker']")).getAttribute("value");
 		}
 		
-		if(!driver.findElement(By.xpath("//input[@class='payment-update-pay']")).getAttribute("value").contentEquals("")) {
-			failMsg = failMsg + "\n5. Default Pay Value is wrong [Expected] null [Actual]" + driver.findElement(By.xpath("//input[@class='payment-update-pay']")).getAttribute("value");
+		if(!driver.findElement(By.xpath("//input[@class='payment-update-pay']")).getAttribute("value").contentEquals("0")) {
+			failMsg = failMsg + "\n5. Default Pay Value is wrong [Expected] 0 [Actual]" + driver.findElement(By.xpath("//input[@class='payment-update-pay']")).getAttribute("value");
 		}
 		
 		if(!driver.findElement(By.xpath("//select[@class='payment-status']/option[1]")).getAttribute("selected").contentEquals("true")) {
-			failMsg = failMsg + "\n5. Default option is wrong";
+			failMsg = failMsg + "\n6. Default option is wrong";
 		}
 		
 		if(!driver.findElement(By.xpath("//tr[1]//button[1]")).getText().contentEquals("저장하기")) {
-			failMsg = failMsg + "\n6.Button is wrong [Expected] 저장하기 [Actual]" + driver.findElement(By.xpath("//tr[1]//button[1]")).getText();
+			failMsg = failMsg + "\n7.Button is wrong [Expected] 저장하기 [Actual]" + driver.findElement(By.xpath("//tr[1]//button[1]")).getText();
 		}
 		
 		if(!driver.findElement(By.xpath("//tr[1]//button[2]")).getText().contentEquals("실행 취소")) {
-			failMsg = failMsg + "\n7.Button is wrong [Expected] 실행 취소 [Actual]" + driver.findElement(By.xpath("//tr[1]//button[2]")).getText();
+			failMsg = failMsg + "\n8.Button is wrong [Expected] 실행 취소 [Actual]" + driver.findElement(By.xpath("//tr[1]//button[2]")).getText();
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {

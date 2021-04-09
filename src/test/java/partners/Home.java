@@ -279,17 +279,18 @@ public class Home {
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@class='wrap-monthly-stats']")));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='item-price']")));
 		
 		if(!driver.findElement(By.xpath("//div[@id='sales-price']")).isDisplayed()) {
 			failMsg = "Sales-price is not display";
 		}
 		
 		int pricesum = 0;
+		List<WebElement> price = driver.findElements(By.xpath("//div[@class='item-price']"));
+		
 		for(int i = 0; i < 3; i++) {
-				
-			List<WebElement> price = driver.findElements(By.xpath("//div[@class='item-price']"));
+			
 			String a = price.get(i).getText().replace(",", "");
-
 			pricesum += Integer.parseInt(a);
 			
 		}

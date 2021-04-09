@@ -335,6 +335,10 @@ public class Payment {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//button[@class='btn btn-shortcut rapid-search-btn active']")));
 
+		//기간 선택
+		driver.findElement(By.xpath("//select[@id='date-condition']")).click();
+		driver.findElement(By.xpath("//select[@id='date-condition']//option[1]")).click();
+		
 		List<WebElement> list = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		
 		list.get(0).findElement(By.xpath(".//td[2]/a")).click();
@@ -379,6 +383,8 @@ public class Payment {
 	@Test(priority = 13, enabled = true)
 	public void excelPayment() throws Exception {
 		String failMsg = "";
+		
+		comm.checkExcelFile("payment-list");
 		
 		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		int ROWcount = rows.size();
@@ -701,30 +707,43 @@ public class Payment {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "결제 관리"));
 
+		//데이터 없을 경우
+		if(driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]")).isEmpty()) {
+			driver.findElement(By.xpath("//button[@id='id-prepayment']")).click();
+			comm2.waitForLoad(driver);
+			Thread.sleep(1000);
+		}
+		
 		List<WebElement> amountlist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]"));
+		List<WebElement> Companylist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[2]/a"));
+		List<WebElement> Licenselist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[4]/a"));
+		List<WebElement> Pricelist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[10]/span"));
 		
 		for(int i = 0; i < amountlist.size(); i++) {
-			String a = amountlist.get(i).getText();
+			String listamount = amountlist.get(i).getText();
+			String pricelist = Pricelist.get(i).getText();
 			
-			List<WebElement> list = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[4]/a"));
-			
-			list.get(i).click();
+			Licenselist.get(i).click();
 			
 			wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']/h2")), "라이선스 관리"));
 			
-			String b = driver.findElement(By.xpath("//input[@id='amount']")).getAttribute("value");
+			//결제정보에서 수량 찾기
+			String infoamount = driver.findElement(By.xpath("//td[7][(contains(text(),'" + pricelist + "'))]//..//td[6]")).getText();
 			
-			if(!a.contentEquals(b)) {
-				failMsg = "Amount is wrong [Wrong row]" + (i+1) + "[Expect Amount]" + b + " [Actual Amount]" + a;
+			if(!listamount.contentEquals(infoamount)) {
+				failMsg = "Amount is wrong [Wrong row]" + (i+1) +  "[Company Name]" + Companylist.get(i).getText() + "[Expect Amount]" + infoamount + " [Actual Amount]" + listamount;
 			}
+			
+			Thread.sleep(1000);
 			
 			driver.navigate().back();
 			
 			wait.until(ExpectedConditions.textToBePresentInElement(driver.findElement(By.xpath("//div[@class='panel-header']")), "결제 관리"));
 			
 			amountlist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]"));
-			list = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[4]/a"));
-
+			Licenselist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[4]/a"));
+			Companylist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[2]/a"));
+			Pricelist = driver.findElements(By.xpath("//td[6][not(contains(text(),'-'))]//ancestor::tr/td[10]/span"));
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {

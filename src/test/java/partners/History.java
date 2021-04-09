@@ -239,6 +239,8 @@ public class History {
 	public void excelsearchCID() throws Exception {
 		String failMsg = "";
 		
+		comm.checkExcelFile("conference-log-list");
+		
 		List<WebElement> rows = driver.findElements(By.xpath("//tbody[@id='companyListWrapper']/tr"));
 		int ROWcount = rows.size();
 		List<WebElement> column = driver.findElements(By.xpath("//td"));
@@ -370,7 +372,7 @@ public class History {
 			case 1:
 				result = list.get(j).findElement(By.xpath(".//td[8]/a")).getText();
 
-				if (!result.contentEquals(data)) {
+				if (!result.contains(data)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[Data]" + result);
 					throw e;
 				}
@@ -379,7 +381,7 @@ public class History {
 			case 2:
 				result = list.get(j).findElement(By.xpath(".//td[9]/a")).getText();
 
-				if (!result.contentEquals(data)) {
+				if (!result.contains(data)) {
 					Exception e = new Exception("Wrong data [RowNum]" + (j + 1) + "[Data]" + result);
 					throw e;
 				}
@@ -388,7 +390,7 @@ public class History {
 			case 3:
 				result = list.get(j).findElement(By.xpath(".//td[10]")).getText();
 
-				if (!result.contentEquals(data)) {
+				if (!result.contains(data)) {
 					list.get(j).findElement(By.xpath(".//td[8]/a")).click();
 
 					WebDriverWait wait = new WebDriverWait(driver, 10);
