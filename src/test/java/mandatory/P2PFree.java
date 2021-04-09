@@ -62,7 +62,7 @@ public class P2PFree {
 	
 	public static String MSG_SETTING = "현재의 마이크, 카메라 설정이 적용됩니다.";
 	
-	public static String TOOLTIP_AITAB = "관리자 페이지에서 AI기록 제한을 제한없음으로 변경해야 합니다.";
+	public static String TOOLTIP_AITAB = "Free 버전 회의에서는 사용하실 수\n없습니다.";
 	
 	public static String EXIT_HEADER = "RemoteMeeting 회원은 더 다양한 기능을 사용할 수 있습니다.";
 	
@@ -132,27 +132,20 @@ public class P2PFree {
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
-		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: block;"));
-		
-		if(!driver.findElement(By.xpath("//div[@class='notification-message']/div")).getText().contentEquals(MSG_SETTING)) {
-			failMsg = "Wrong Msg [Expected]" + MSG_SETTING + " [Actual]" + driver.findElement(By.xpath("//div[@class='notification-message']/div")).getText();
- 		}
-		
-		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: none;"));
 		
 		roomID = driver.getCurrentUrl().replace(CommonValues.MEETING_URL + CommonValues.ROOM_URL , "");
 
 		if (!driver.getCurrentUrl().contains(CommonValues.MEETING_URL + CommonValues.ROOM_URL)) {
-			failMsg = failMsg + "\n2.Can't enter Free Room [Expected]" + CommonValues.MEETING_URL + CommonValues.ROOM_URL + roomID
+			failMsg = failMsg + "\n1.Can't enter Free Room [Expected]" + CommonValues.MEETING_URL + CommonValues.ROOM_URL + roomID
 					+ " [Actual]" + driver.getCurrentUrl();
 		}
 		
 		if(!driver.findElement(By.xpath(CommonValues.XPATH_ROOM_INVITE)).isDisplayed()) {
-			failMsg = failMsg + "\n3.Can't dispay Invitation screen";
+			failMsg = failMsg + "\n2.Can't dispay Invitation screen";
 		}
 		
 		if(!driver.findElement(By.xpath("//div[@title='FREE']")).getText().contentEquals("FREE")) {
-			failMsg = failMsg + "\n4.Wrong invite title [Expected] FREE [Actual]" + driver.findElement(By.xpath("//div[@title='FREE']")).getText();
+			failMsg = failMsg + "\n3.Wrong invite title [Expected] FREE [Actual]" + driver.findElement(By.xpath("//div[@title='FREE']")).getText();
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -256,7 +249,7 @@ public class P2PFree {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_NOTE)));
 		
-		if(!driver.findElement(By.xpath(CommonValues.XPATH_NOTE)).getAttribute("class").contentEquals("active") ) {
+		if(!driver.findElement(By.xpath(CommonValues.XPATH_NOTE)).getAttribute("class").contains("active") ) {
 			failMsg = "Inactive Note";
 		}
 		

@@ -1,9 +1,6 @@
 package mandatory;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +12,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.UnexpectedAlertBehaviour;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -51,6 +48,12 @@ public class CommonValues {
 	public static String[] USERS = {"rmrsup1@gmail.com", "rmrsup3@gmail.com", "rmrsup4@gmail.com", "rmrsup5@gmail.com", "rmrsup6@gmail.com", "rmrsup7@gmail.com"};
 	public static String ADM_ID = "rsrsup1@gmail.com";
 	public static String USER_NOLIC = "rsrsup2@gmail.com";//라이선스 없음
+	
+	public static String PLANEMAIL = "room01@rsupport.com"; //회의실 요금제용 테스트 계정
+	public static String PLANEMAIL2 = "room02@rsupport.com";
+	public static String PLANEMAIL3 = "room03@rsupport.com";
+
+	public static String PLANPW = "111111";
 	
 	//파트너사명 : 자동화테스트용
 	//관리자 : rmrsuppartner@gmail.com
@@ -157,6 +160,9 @@ public class CommonValues {
     public static String XPATH_SCREENSHOT_BTN = "//button[@id='screen-shot']";
     public static String XPATH_CROWN_BTN = "//button[@id='speak-right']";
     public static String XPATH_SPEAKLIST_BTN = "//button[@id='speak-list']";
+	
+    public static String XPATH_SCHEDULE_BTN = "//i[@class='rmicon-calendar']";
+	public static String XPATH_HISTORY_BTN = "//i[@class='rmicon-history']";
 	
 	public static String XPATH_TOAST = "//div[@id='msg-box']/p";
 	
@@ -334,23 +340,29 @@ public class CommonValues {
 		driver.findElement(By.xpath("//section[@id='create-room-dialog']//button[@type='submit']")).click();
 		
 		waitForLoad(driver);
-		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ROOM_INVITEINPUT)));
-		driver.findElement(By.xpath(XPATH_ROOM_INVITEINPUT)).click();
 		Thread.sleep(3000);
-		driver.findElement(By.xpath("//section[@id='invite-header']/button")).click();
-		wait.until(ExpectedConditions.invisibilityOf(driver.findElement(By.xpath(XPATH_ROOM_INVITE))));
+		
+		try {
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ROOM_INVITE)));
+			Thread.sleep(3000);
+			driver.findElement(By.xpath("//section[@id='invite-header']/button")).click();
+			wait.until(ExpectedConditions.invisibilityOf(driver.findElement(By.xpath(XPATH_ROOM_INVITE))));
+		} catch (Exception e) {
+			// do not anything
+		}
 	}
 	
-	public String findCode(WebDriver driver) {
-		if(driver.findElement(By.xpath(XPATH_ROOM_INVITE)).getAttribute("style").contains("block")) {
-			roomCode = driver.findElement(By.xpath("//div[@id='search-wrap']/button[1]")).getText();
-			
-		}else {
+	public String findCode(WebDriver driver) throws InterruptedException {
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		
+		try {
+			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_INVITE_BTN)));
 			driver.findElement(By.xpath(XPATH_INVITE_BTN)).click();
-			WebDriverWait wait = new WebDriverWait(driver, 10);
-			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_ROOM_INVITEINPUT)));
-			roomCode = driver.findElement(By.xpath("//div[@id='search-wrap']/button[1]")).getText();
-			
+			wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(XPATH_ROOM_INVITE)));
+			roomCode = driver.findElement(By.xpath("//button[@id='room-code']")).getText();
+		} catch (Exception e) {
+			roomCode = driver.findElement(By.xpath("//button[@id='room-code']")).getText();
 		}
 		return roomCode;		
 	}
@@ -362,7 +374,7 @@ public class CommonValues {
 		
 		WebDriverWait wait = new WebDriverWait(attenddriver, 10);
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(XPATH_FREECREATE_BTN)));
-		System.out.println(roomCode);
+		System.out.println("code : " + roomCode);
 		attenddriver.findElement(By.xpath(XPATH_FREECREATEATTEND_BTN)).click();
 		Thread.sleep(2000);
 		
@@ -585,6 +597,9 @@ public class CommonValues {
 		case JPG:
 			addedfile = filePath + TESTFILE_LIST[4];
 			break;
+		case PPTX:
+			addedfile = filePath + TESTFILE_LIST[7];
+			break;
 
 		default:
 			addedfile = filePath + TESTFILE_LIST[4];
@@ -603,6 +618,16 @@ public class CommonValues {
 		wd.findElement(By.xpath("//div[@id='gnb-conference']//input")).sendKeys(code);
 		wd.findElement(By.xpath("//div[@id='gnb-conference']//button")).click();
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(XPATH_EXIT_BTN)));
+	}
+	
+	public Boolean checkDisplay(WebDriver driver, By by) {
+		try {
+			return driver.findElement(by).isDisplayed();
+		} catch (NoSuchElementException ignored) {
+			return false;
+		} catch (StaleElementReferenceException ignored) {
+			return false;
+		}
 	}
 
 }

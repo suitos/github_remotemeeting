@@ -2,6 +2,8 @@ package mandatory;
 
 import static org.testng.Assert.fail;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -94,9 +96,6 @@ public class P2PEnterprise {
 	public static String XPATH_PROFILE_BTN = "//button[@id='btn-user']";
 	public static String XPATH_LOUNGE_BTN = "//div[@class='header-item btn-lounge']";
 
-	public static String XPATH_SCHEDULE_BTN = "//i[@class='rmicon-calendar']";
-	public static String XPATH_HISTORY_BTN = "//i[@class='rmicon-history']";
-	
 	public static String HREF_PROFILE = "//a[@href='/ko/setting/profile']";
 	
 	public static String XPATH_SCREENSHOT_BTN = "//button[@id='screen-shot']";
@@ -106,11 +105,11 @@ public class P2PEnterprise {
 	
 	public static String TOAST_TOGETHERNOTE = "다른 참여자들의 회의록을 펼쳤습니다.";
 	
-	public static String TOAST_TILELAYOUT = CommonValues.ADMINNICKNAME +"님이 분할 모드로 변경했습니다.";
-	public static String TOAST_FOCUSLAYOUT = CommonValues.ADMINNICKNAME +"님이 강조 모드로 변경했습니다.";
-	public static String TOAST_ACTIVESPEACERLAYOUT = CommonValues.ADMINNICKNAME +"님이 주화자 모드로 변경했습니다.";
+	public static String TOAST_TILELAYOUT = "%s님이 분할 모드로 변경했습니다.";
+	public static String TOAST_FOCUSLAYOUT = "%s님이 강조 모드로 변경했습니다.";
+	public static String TOAST_ACTIVESPEACERLAYOUT = "%s님이 주화자 모드로 변경했습니다.";
 	
-	public static String TOAST_SPEAKRIGHT = CommonValues.ADMINNICKNAME +"님이 사회자 권한을 선택하였습니다.";
+	public static String TOAST_SPEAKRIGHT = "%s님이 사회자 권한을 선택하였습니다.";
 	public static String TOAST_ALLMICOFF = "전체 마이크가 OFF 되었습니다.";
 	public static String TOAST_ALLMICON = "전체 마이크가 ON 되었습니다.";
 	public static String TOAST_ALLCAMOFF = "전체 카메라가 OFF 되었습니다.";
@@ -137,7 +136,7 @@ public class P2PEnterprise {
 	
 	public static String CONTENTWRAP_TXT = "녹화를 시작하시겠습니까? 녹화된 영상은 히스토리 메뉴에서 확인할 수 있습니다.";
 	public static String CONTENTWRAP_TXT2 = "사회자 모드는 회의 참여자가 많을 경우 원활한 회의 진행을 위해 발언권을 조정하는 기능을 제공합니다.\n" + 
-											"사회자 모드를 활성화하면 " +CommonValues.ADMINNICKNAME + "님이 회의 조정자가 됩니다.\n" + 
+											"사회자 모드를 활성화하면 %s님이 회의 조정자가 됩니다.\n" + 
 											"사회자 모드를 활성화 하시겠습니까?";
 	
 	private static String RoomTitle = "P2PEnterprise";
@@ -162,7 +161,7 @@ public class P2PEnterprise {
 			user1[0] = "auto1@rsupport.com";
 			user1[1] = "자동화1";
 			user2[0] = "auto2@rsupport.com";
-			user1[1] = "자동화2";
+			user2[1] = "자동화2";
 		} 
 		
 		comm.setDriverProperty(browsertype);
@@ -310,7 +309,8 @@ public class P2PEnterprise {
 		
 		comm.waitForLoad(driver);
 		WebDriverWait wait = new WebDriverWait(driver, 20);
-		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
+		//wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_ROOM_LOADER)));
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_ROOM_LOADER)));
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='device-setting-notification-box']")));
 		
@@ -446,7 +446,7 @@ public class P2PEnterprise {
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
 		
 		if(!driver.findElement(By.xpath("//div[@id='mic-list']//select/option[2]")).getAttribute("selected").contentEquals("true")) {
-			failMsg = "a";
+			failMsg = "Don't selected";
 		}
 		
 		if (failMsg != null && !failMsg.isEmpty()) {
@@ -478,7 +478,7 @@ public class P2PEnterprise {
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
 		
 		if(!driver.findElement(By.xpath("//select[@id='speakers']/option[2]")).getAttribute("selected").contentEquals("true")) {
-			failMsg = "a";
+			failMsg = "Don't selected";
 		}
 		
 		driver.findElement(By.xpath("//button[@class='button round gray close']")).click();
@@ -499,17 +499,9 @@ public class P2PEnterprise {
 		String code = comm.findCode(driver);
 		comm.attendRoomLoginUser(Attenddriver, code);
 		WebDriverWait wait = new WebDriverWait(driver, 30);
-		//wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		comm.waitForLoad(driver);
-		/*  입장 토스트 없어짐.
-		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();
-		System.out.println(msg);
-		if(!msg.contentEquals("["+CommonValues.ATTENDEEFREENICKNAME+"] 님이 참여했습니다.")) {
-			failMsg = "Wrong Attend MSG [Expected] [FREEATTENDEE] 님이 참여했습니다." 
-					+ " [Actual]" + msg;
-		}
-		*/
+	
 		if (!Attenddriver.getCurrentUrl().contentEquals((CommonValues.MEETING_URL + CommonValues.ROOM_URL + roomID))) {
 			failMsg = "1.Attendee can't entered Free Room [Expected]" + CommonValues.MEETING_URL + CommonValues.ROOM_URL + roomID
 					+ " [Actual]" + Attenddriver.getCurrentUrl();
@@ -713,11 +705,13 @@ public class P2PEnterprise {
 		String failMsg = "";
 		
 		driver.findElement(By.xpath("//span[@class='off']")).click();
-		
+		WebDriverWait wait = new WebDriverWait(driver, 20);
 		if(!driver.findElement(By.xpath(CommonValues.XPATH_NOTE)).getAttribute("data-automatic").contentEquals("on") ) {
 			failMsg = failMsg + "\n1.AI don't turn ON";
 		}
-		
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='tooltip-switch-info note-tooltip']")));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@class='on']")));
+		Thread.sleep(500);
 		if (failMsg != null && !failMsg.isEmpty()) {
 			Exception e = new Exception(failMsg);
 			throw e;
@@ -739,6 +733,11 @@ public class P2PEnterprise {
 		
 		driver.findElement(By.xpath("//button[@id='btn-confirm']")).click();
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		try {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='tooltip-switch-info note-tooltip']")));
+		} catch (Exception e) {
+			// do not anything
+		}
 		
 		if(!driver.findElement(By.xpath(CommonValues.XPATH_NOTE)).getAttribute("data-automatic").contentEquals("off") ) {
 			failMsg = failMsg + "\n2.AI don't turn OFF";
@@ -760,7 +759,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 21, enabled = true)
+	@Test(priority = 21,  enabled = true)
 	public void NoteManual() throws Exception {
 		String failMsg = "";
 		
@@ -787,7 +786,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 22, enabled = true)
+	@Test(priority = 22,  enabled = true)
 	public void Enterprise_Sharenote() throws Exception {
 		String failMsg = "";
 		
@@ -806,7 +805,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 23, dependsOnMethods = {"Enterprise_Sharenote"},  enabled = true)
+	@Test(priority = 23, dependsOnMethods = {"Enterprise_Sharenote"},   enabled = true)
 	public void Enterprise_Sendnote() throws Exception {
 		String failMsg = "";
 		
@@ -828,7 +827,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 24, dependsOnMethods = {"Enterprise_Sendnote"}, alwaysRun = true,  enabled = true)
+	@Test(priority = 24, dependsOnMethods = {"Enterprise_Sendnote"}, alwaysRun = true,   enabled = true)
 	public void Enterprise_Historynote() throws Exception {
 		String failMsg = "";
 		
@@ -851,7 +850,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 25, dependsOnMethods = {"Enterprise_Sharenote"}, alwaysRun = true, enabled = true)
+	@Test(priority = 25, dependsOnMethods = {"Enterprise_Sharenote"}, alwaysRun = true,  enabled = true)
 	public void Enterprise_Togethernote() throws Exception {
 		String failMsg = "";
 		
@@ -873,7 +872,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 26, dependsOnMethods = {"Enterprise_Sharenote"}, alwaysRun = true, enabled = true)
+	@Test(priority = 26, dependsOnMethods = {"Enterprise_Sharenote"}, alwaysRun = true,  enabled = true)
 	public void Enterprise_Closenote() throws Exception {
 		String failMsg = "";
 		
@@ -896,7 +895,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 27, enabled = true)
+	@Test(priority = 27,  enabled = true)
 	public void Enterprise_CheckTimeline_Camera() throws Exception {
 		String failMsg = "";
 		
@@ -928,7 +927,7 @@ public class P2PEnterprise {
 		/*
 		String timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 카메라를 껐습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 카메라를 껐습니다.")) {
 			failMsg = "\n1. Wrong Timeline : " + timeline;
 		}
 		
@@ -936,7 +935,7 @@ public class P2PEnterprise {
 		
 		timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 카메라를 켰습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 카메라를 켰습니다.")) {
 			failMsg = failMsg + "\n 2.Wrong Timeline : " + timeline;
 		}
 		*/
@@ -947,7 +946,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 28, enabled = true)
+	@Test(priority = 28,  enabled = true)
 	public void Enterprise_CheckTimeline_MIC() throws Exception {
 		String failMsg = "";
 		
@@ -974,7 +973,7 @@ public class P2PEnterprise {
 		/*
 		String timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 마이크를 음소거했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 마이크를 음소거했습니다.")) {
 			failMsg = "\n1. Wrong Timeline : " + timeline;
 		}
 		
@@ -982,7 +981,7 @@ public class P2PEnterprise {
 		
 		timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 마이크 음소거를 해제했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 마이크 음소거를 해제했습니다.")) {
 			failMsg = failMsg + "\n2.Wrong Timeline : " + timeline;
 		}
 		
@@ -997,7 +996,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 29, enabled = true)
+	@Test(priority = 29,  enabled = true)
 	public void Enterprise_ShareDOC_jpg() throws Exception {
 		String failMsg = "";
 		
@@ -1019,7 +1018,7 @@ public class P2PEnterprise {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[4] + "를 공유했습니다.")) {
 			failMsg = failMsg + "\n2. Wrong Timeline : " + timeline;
 		}
 		
@@ -1029,7 +1028,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 30, enabled = true)
+	@Test(priority = 30,  enabled = true)
 	public void Enterprise_ShareDOC_txt() throws Exception {
 		String failMsg = "";
 		
@@ -1051,7 +1050,7 @@ public class P2PEnterprise {
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TIMELINE)));
 		
-		if(!timeline.contentEquals(CommonValues.ADMINNICKNAME + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
+		if(!timeline.contentEquals(user1[1] + "님이 " + CommonValues.TESTFILE_LIST[8] + "를 공유했습니다.")) {
 			failMsg = failMsg + "Wrong Timeline : " + timeline;
 		}
 		
@@ -1061,7 +1060,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 31, enabled = true)
+	@Test(priority = 31,  enabled = true)
 	public void Enterprise_StartShareScreen() throws Exception {
 		String failMsg = "";
 		
@@ -1084,7 +1083,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 32, dependsOnMethods = {"Enterprise_StartShareScreen"}, enabled = true)
+	@Test(priority = 32, dependsOnMethods = {"Enterprise_StartShareScreen"},  enabled = true)
 	public void Enterprise_CheckShareScreenIcon() throws Exception {
 		String failMsg = "";
 		
@@ -1098,7 +1097,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 33, enabled = true)
+	@Test(priority = 33,  enabled = true)
 	public void Enterprise_StopShareScreen() throws Exception {
 		String failMsg = "";
 		
@@ -1121,7 +1120,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 34, enabled = true)
+	@Test(priority = 34,  enabled = true)
 	public void Record() throws Exception {
 		String failMsg = "";
 		
@@ -1135,7 +1134,7 @@ public class P2PEnterprise {
 		}
 		
 		if(!driver.findElement(By.xpath("//div[@class='content-wrap']//p")).getText().contentEquals(CONTENTWRAP_TXT)) {
-			failMsg = failMsg + "\n2.Wrong TXT [Expected]" + CONTENTWRAP_TXT2
+			failMsg = failMsg + "\n2.Wrong TXT [Expected]" + CONTENTWRAP_TXT
 					+ " [Actual]" + driver.findElement(By.xpath("//div[@class='content-wrap']")).getText();
 		}
 		
@@ -1164,7 +1163,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 35, enabled = true)
+	@Test(priority = 35,  enabled = true)
 	public void Enterprise_SendTxt_Timeline() throws Exception {
 		String failMsg = "";
 		
@@ -1191,7 +1190,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 36, enabled = true)
+	@Test(priority = 36,  enabled = true)
 	public void Enterprise_CloseTimeline() throws Exception {
 		String failMsg = "";
 		
@@ -1213,7 +1212,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 37, enabled = true)
+	@Test(priority = 37,  enabled = true)
 	public void Enterprise_selectMode() throws Exception {
 		String failMsg = "";
 		
@@ -1236,7 +1235,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 38, enabled = true)
+	@Test(priority = 38,  enabled = true)
 	public void Enterprise_selectMode_tileLayout() throws Exception {
 		String failMsg = "";
 		
@@ -1249,8 +1248,8 @@ public class P2PEnterprise {
 		
 		String timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(TOAST_TILELAYOUT)) {
-			failMsg = "Wrong Timeline [Expected]" + TOAST_TILELAYOUT + " [Actual]" + timeline;
+		if(!timeline.contentEquals(String.format(TOAST_TILELAYOUT, user1[1]))) {
+			failMsg = "Wrong Timeline [Expected]" + String.format(TOAST_TILELAYOUT, user1[1]) + " [Actual]" + timeline;
 		}
 		
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@id='msg-box']")));
@@ -1261,7 +1260,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 39, enabled = true)
+	@Test(priority = 39,  enabled = true)
 	public void Enterprise_selectMode_focusLayout() throws Exception {
 		String failMsg = "";
 		
@@ -1278,8 +1277,8 @@ public class P2PEnterprise {
 		
 		String timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(TOAST_FOCUSLAYOUT)) {
-			failMsg = "Wrong Timeline [Expected]" + TOAST_FOCUSLAYOUT + " [Actual]" + timeline;
+		if(!timeline.contentEquals(String.format(TOAST_FOCUSLAYOUT, user1[1]))) {
+			failMsg = "Wrong Timeline [Expected]" + String.format(TOAST_FOCUSLAYOUT, user1[1]) + " [Actual]" + timeline;
 		}
 		
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@id='msg-box']")));
@@ -1290,7 +1289,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 40, enabled = true)
+	@Test(priority = 40,  enabled = true)
 	public void Enterprise_selectMode_activespeakerLayout() throws Exception {
 		String failMsg = "";
 		
@@ -1303,12 +1302,16 @@ public class P2PEnterprise {
 		
 		driver.findElement(By.xpath("//button[@id='apply-layout']")).click();
 		
-		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='msg-box']")));
+		try {
+			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
+		} catch (Exception e) {
+			// do not anything
+		}
 		
 		String timeline = comm.checkTimeline(driver);
 		
-		if(!timeline.contentEquals(TOAST_ACTIVESPEACERLAYOUT)) {
-			failMsg = "Wrong Timeline [Expected]" + TOAST_ACTIVESPEACERLAYOUT + " [Actual]" + timeline;
+		if(!timeline.contentEquals(String.format(TOAST_ACTIVESPEACERLAYOUT, user1[1]))) {
+			failMsg = "Wrong Timeline [Expected]" + String.format(TOAST_ACTIVESPEACERLAYOUT, user1[1]) + " [Actual]" + timeline;
 		}
 		
 		wait.until(ExpectedConditions.elementToBeClickable(By.xpath(CommonValues.XPATH_TIMELINE_BTN)));
@@ -1324,7 +1327,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 41, enabled = true)
+	@Test(priority = 41,  enabled = true)
 	public void Enterprise_SpeakRight() throws Exception {
 		String failMsg = "";
 		
@@ -1337,8 +1340,8 @@ public class P2PEnterprise {
 			failMsg = failMsg + "\n1. SpeakRight popup is not display";
 		}
 		
-		if(!driver.findElement(By.xpath("//div[@class='content-wrap']")).getText().contains(CONTENTWRAP_TXT2)) {
-			failMsg = failMsg + "\n2.Wrong TXT [Expected]" + CONTENTWRAP_TXT2
+		if(!driver.findElement(By.xpath("//div[@class='content-wrap']")).getText().contains(String.format(CONTENTWRAP_TXT2, user1[1]))) {
+			failMsg = failMsg + "\n2.Wrong TXT [Expected]" + String.format(CONTENTWRAP_TXT2, user1[1])
 					+ " [Actual]" + driver.findElement(By.xpath("//div[@class='content-wrap']")).getText();
 		}
 		
@@ -1348,8 +1351,8 @@ public class P2PEnterprise {
 		
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		String msg = driver.findElement(By.xpath(CommonValues.XPATH_TOAST)).getText();	
-		if(!msg.contentEquals(TOAST_SPEAKRIGHT)) {
-			failMsg = failMsg + "\n3.Wrong Speakright MSG [Expected]" + TOAST_SPEAKRIGHT
+		if(!msg.contentEquals(String.format(TOAST_SPEAKRIGHT, user1[1]))) {
+			failMsg = failMsg + "\n3.Wrong Speakright MSG [Expected]" + String.format(TOAST_SPEAKRIGHT, user1[1])
 					+ " [Actual]" + msg;
 		}
 		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
@@ -1360,7 +1363,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 42, enabled = true)
+	@Test(priority = 42,  enabled = true)
 	public void Enterprise_SpeakRight_MIC() throws Exception {
 		String failMsg = "";
 		
@@ -1391,7 +1394,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 43, enabled = true)
+	@Test(priority = 43,  enabled = true)
 	public void Enterprise_SpeakRight_CAM() throws Exception {
 		String failMsg = "";
 		
@@ -1438,7 +1441,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 44, enabled = true)
+	@Test(priority = 44,  enabled = true)
 	public void Enterprise_SpeakList() throws Exception {
 		String failMsg = "";
 		
@@ -1456,7 +1459,7 @@ public class P2PEnterprise {
 		
 		if (!speakers.contains(user1[1])
 				|| !speakers.contains(user2[1])) {
-			failMsg = "Wrong SpeakList [Expected]" + user1[1] + "," + user2[1] 
+			failMsg = "\n1.Wrong SpeakList [Expected]" + user1[1] + "," + user2[1] 
 					+ " [Actual]" + speakers.get(0) + "," + speakers.get(1);
 		}
 		
@@ -1473,9 +1476,12 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 45, enabled = true)
+	@Test(priority = 45,  enabled = true)
 	public void Enterprise_PIPExport() throws Exception {
 		String failMsg = "";
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		if(driver.findElement(By.xpath("//aside[@id='timeline']")).getAttribute("class").contains("active")) {
 			driver.findElement(By.xpath(CommonValues.XPATH_TIMELINE_BTN)).click();
@@ -1496,7 +1502,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 46, enabled = true)
+	@Test(priority = 46,  enabled = true)
 	public void Enterprise_PIPView() throws Exception {
 		String failMsg = "";
 		
@@ -1523,10 +1529,11 @@ public class P2PEnterprise {
 		
 	}
 	
-	@Test(priority = 47, enabled = true)
+	@Test(priority = 47,  enabled = true)
 	public void Enterprise_PIPFix() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(CommonValues.XPATH_TOAST)));
 		
 		//사회자 모드일경우 사회자 모드 해제
 		if(driver.findElement(By.xpath(XPATH_SPEAKRIGHT_BTN)).getAttribute("class").contains("active")) {
@@ -1550,7 +1557,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 48, enabled = true)
+	@Test(priority = 48,  enabled = true)
 	public void Enterprise_Screenshot() throws Exception {
 		String failMsg = "";
 		
@@ -1575,7 +1582,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 49, enabled = true)
+	@Test(priority = 49,  enabled = true)
 	public void Enterprise_checkScreenshotDownloadMsg() throws Exception {
 		String failMsg = "";
 		
@@ -1604,7 +1611,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 50, enabled = true)
+	@Test(priority = 50,  enabled = true)
 	public void Enterprise_checkScreenshotMsg() throws Exception {
 		String failMsg = "";
 		
@@ -1623,7 +1630,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 51, enabled = true)
+	@Test(priority = 51,  enabled = true)
 	public void Enterprise_checkScreenshotinTimeline() throws Exception {
 		String failMsg = "";
 		
@@ -1645,7 +1652,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 52, enabled = true)
+	@Test(priority = 52,  enabled = true)
 	public void Enterprise_deleteScreenshot() throws Exception {
 		String failMsg = "";
 		
@@ -1673,7 +1680,7 @@ public class P2PEnterprise {
 	}
 	
 	
-	@Test(priority = 53, enabled = true)
+	@Test(priority = 53,  enabled = true)
 	public void StopRecord() throws Exception {
 		String failMsg = "";
 		
@@ -1703,7 +1710,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 54, enabled = true)
+	@Test(priority = 54,  enabled = true)
 	public void Enterprise_PIPHide() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -1733,7 +1740,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 55, enabled = true)
+	@Test(priority = 55,  enabled = true)
 	public void Enterprise_Exit() throws Exception {
 		String failMsg = "";
 		
@@ -1759,11 +1766,11 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 56, enabled = true)
+	@Test(priority = 56,  enabled = true)
 	public void Schedule() throws Exception {
 		String failMsg = "";
 		
-		driver.findElement(By.xpath(XPATH_SCHEDULE_BTN)).click();
+		driver.findElement(By.xpath(CommonValues.XPATH_SCHEDULE_BTN)).click();
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@id='schedule']")));
@@ -1779,7 +1786,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 57, enabled = true)
+	@Test(priority = 57,  enabled = true)
 	public void addSchedule() throws Exception {
 		String failMsg = "";
 		
@@ -1810,9 +1817,9 @@ public class P2PEnterprise {
 		List<WebElement> schedule_affter = driver.findElements(By.xpath("//div[@class='schedule-card ']"));
 		
 		if (!schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//div[1]/p[@class='title']")).getText().contentEquals("Schedule Test")
-				|| !schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//li/span[@class='name']")).getText().contentEquals(CommonValues.ADMINNICKNAME)) {
+				|| !schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//li/span[@class='name']")).getText().contentEquals(user1[1])) {
 
-			failMsg = "\n3.Wrong Schedule [Expected]Schedule Test," + CommonValues.ADMINNICKNAME + " [Acual]"
+			failMsg = "\n3.Wrong Schedule [Expected]Schedule Test," + user1[1] + " [Acual]"
 					+ schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//div[1]/p[@class='title']")).getText() + ","
 					+ schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//li/span[@class='name']")).getText();
 		}
@@ -1823,7 +1830,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 58, enabled = true)
+	@Test(priority = 58,  enabled = true)
 	public void deleteSchedule() throws Exception {
 		String failMsg = "";
 		
@@ -1863,12 +1870,85 @@ public class P2PEnterprise {
 			throw e;
 		}
 	}
+
+	@Test(priority = 60,  enabled = true)
+	public void modSchedule() throws Exception {
+		String failMsg = "";
+
+		List<WebElement> schedule = driver.findElements(By.xpath("//div[@class='schedule-card ']"));
+		
+		driver.findElement(By.xpath("//button[@id='btn-create']")).click();
+		
+		WebDriverWait wait = new WebDriverWait(driver, 10);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
+		if(!driver.findElement(By.xpath("//div[@class='content-wrap']")).isDisplayed()) {
+			failMsg = "\n1.Add Schedule popup is not display";
+		}
+		String scheduleTitle = "Schedule mod Test";
+		driver.findElement(By.xpath("//input[@id='title-input']")).sendKeys(scheduleTitle);
+		driver.findElement(By.xpath("//div[@class='react-datepicker__input-container'][1]/button")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//select[@class='react-datepicker__month-select']")));
+		driver.findElement(By.xpath("//select[@class='react-datepicker__month-select']")).click();
+		
+		LocalDateTime nowDateTime = LocalDateTime.now();
+		int month = nowDateTime.getMonthValue()==12?1:nowDateTime.getMonthValue()+1;
+		
+		String xpathM = "//select[@class='react-datepicker__month-select']/option[@value='%d']";
+		driver.findElement(By.xpath(String.format(xpathM, month))).click();
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//div[@class='react-datepicker__week'][2]/div[1]")).click();
+		
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//button[@class='button round green large']")).click();
+		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='toast-inner success']")));
+		String msg = driver.findElement(By.xpath("//div[@class='toast-inner success']/span")).getText();
+		
+		if(!msg.contentEquals(TOAST_SAVE)) {
+			failMsg = failMsg + "\n2.Wrong Save MSG [Expected]" + TOAST_SAVE
+					+ " [Actual]" + msg;
+		}
+		
+		wait.until(ExpectedConditions.numberOfElementsToBe(By.xpath("//div[@class='schedule-card ']"), schedule.size() + 1));
+		
+		List<WebElement> schedule_affter = driver.findElements(By.xpath("//div[@class='schedule-card ']"));
+		
+		if (!schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//div[1]/p[@class='title']")).getText().contentEquals(scheduleTitle)
+				|| !schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//li/span[@class='name']")).getText().contentEquals(user1[1])) {
+
+			failMsg = "\n3.Wrong Schedule [Expected]" + scheduleTitle + "," + user1[1] + " [Acual]"
+					+ schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//div[1]/p[@class='title']")).getText() + ","
+					+ schedule_affter.get(schedule_affter.size()-1).findElement(By.xpath(".//li/span[@class='name']")).getText();
+		}
+		schedule_affter.get(schedule_affter.size()-1).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='content-wrap']")));
+		
+		String header = "예약 수정";
+		if(!driver.findElement(By.xpath("//div[@class='content-wrap']//div[@class='dialog-header']")).getText().contentEquals(header)) {
+			failMsg = failMsg + "\n4. schedule popup header [Expected] " + header 
+					+ " [Actual]" + driver.findElement(By.xpath("//div[@class='content-wrap']//div[@class='dialog-header']")).getText();
+		}
+
+		//삭제
+		driver.findElement(By.xpath("//button[@class='button round red close large']")).click();
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@id='question-dialog']")));
+		wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//section/div/button[@class='button round green large']")));
+		
+		driver.findElement(By.xpath("//section/div/button[@class='button round green large']")).click();
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='toast-inner success']")));
+		
+		if (failMsg != null && !failMsg.isEmpty()) {
+			Exception e = new Exception(failMsg);
+			throw e;
+		}
+	}
 	
-	@Test(priority = 59, enabled = true)
+	@Test(priority = 71,  enabled = true)
 	public void History() throws Exception {
 		String failMsg = "";
 		
-		driver.findElement(By.xpath(XPATH_HISTORY_BTN)).click();
+		driver.findElement(By.xpath(CommonValues.XPATH_HISTORY_BTN)).click();
 		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
 		wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath("//div[@id='content']/ul/li")));
@@ -1884,7 +1964,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 60, enabled = true)
+	@Test(priority = 72,  enabled = true)
 	public void viewHistory() throws Exception {
 		String failMsg = "";
 		WebDriverWait wait = new WebDriverWait(driver, 10);
@@ -1906,13 +1986,15 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 61, dependsOnMethods = {"viewHistory"}, enabled = true)
+	@Test(priority = 73, dependsOnMethods = {"viewHistory"},  enabled = true)
 	public void shareHistory() throws Exception {
 		String failMsg = "";
-
-		driver.findElement(By.xpath("//button[@data-btn='share-note']")).click();
-		
 		WebDriverWait wait = new WebDriverWait(driver, 10);
+		
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//section[@id='loader-overlay']")));
+		
+		driver.findElement(By.xpath("//button[@data-btn='share-note']")).click();
+
 		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[2]/div/div")));
 		
 		if(!driver.findElement(By.xpath("//section[2]/div/div")).isDisplayed()) {
@@ -1944,7 +2026,7 @@ public class P2PEnterprise {
 		}
 	}
 	
-	@Test(priority = 62, dependsOnMethods = {"viewHistory"}, enabled = true)
+	@Test(priority = 74, dependsOnMethods = {"viewHistory"},  enabled = true)
 	public void viewScreenshotDetails() throws Exception {
 		String failMsg = "";
 		
@@ -1973,7 +2055,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 63, enabled = true)
+	@Test(priority = 75,  enabled = true)
 	public void recordingHistory() throws Exception {
 		String failMsg = "";
 		
@@ -2000,7 +2082,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 64, enabled = true)
+	@Test(priority = 76,  enabled = true)
 	public void favoriteHistory() throws Exception {
 		String failMsg = "";
 		
@@ -2029,7 +2111,7 @@ public class P2PEnterprise {
 		}	
 	}
 	
-	@Test(priority = 65, enabled = true)
+	@Test(priority = 77,  enabled = true)
 	public void deleteHistory() throws Exception {
 		String failMsg = "";
 		
@@ -2057,7 +2139,7 @@ public class P2PEnterprise {
 		}
 		
 		comm.waitForLoad(driver);
-		
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//li[@class='history-item']")));
 		historylist = driver.findElements(By.xpath("//li[@class='history-item']"));
 		
 		if(!historylist.get(0).findElements(By.linkText(date)).isEmpty()) {

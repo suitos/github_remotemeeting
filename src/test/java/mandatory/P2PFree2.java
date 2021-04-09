@@ -104,13 +104,14 @@ public class P2PFree2 {
 		
 		WebDriverWait wait = new WebDriverWait(driver, 20);
 		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='loader-bi']"), "style", "display: none;"));
-		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: block;"));
-		
-		if(!driver.findElement(By.xpath("//div[@class='notification-message']/div")).getText().contentEquals(MSG_SETTING)) {
-			failMsg = "Wrong Msg [Expected]" + MSG_SETTING + " [Actual]" + driver.findElement(By.xpath("//div[@class='notification-message']/div")).getText();
+		/* 03/22 카메라 마이크 설정 팝업 사라짐
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='device-setting-notification-box']")));
+		String msg =  driver.findElement(By.xpath("//div[@class='notification-message']/div")).getText();
+		if(!msg.contentEquals(MSG_SETTING)) {
+			failMsg = "1. Wrong Msg [Expected]" + MSG_SETTING + " [Actual]" + msg;
  		}
-		
-		wait.until(ExpectedConditions.attributeContains(By.xpath("//div[@id='device-setting-notifications-box-wrapper']"), "style", "display: none;"));
+		*/
+		wait.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='device-setting-notification-box']")));
 		
 		roomID = driver.getCurrentUrl().replace(CommonValues.MEETING_URL + CommonValues.ROOM_URL , "");
 
