@@ -105,6 +105,18 @@
 	    <version>v4-rev614-1.18.0-rc</version>
 	</dependency>
 
+	<dependency>
+		<groupId>io.appium</groupId>
+		<artifactId>java-client</artifactId>
+		<version>7.4.1</version>
+	</dependency>
+	
+	<dependency>
+    <groupId>io.github.bonigarcia</groupId>
+    <artifactId>webdrivermanager</artifactId>
+    <version>4.4.0</version>
+</dependency>
+	
   </dependencies>
   
 </project>
