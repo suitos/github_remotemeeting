@@ -69,8 +69,6 @@ public class P2PEnterprise_Mode {
 		//유저에 따라 토스트 메세지 다를수 있
 		TOAST_SEMINARMODE =  user1[1] +"님이 사회자 권한을 선택하였습니다.";
 		
-		comm.setDriverProperty(browsertype);
-
 		//lang=en_US, ko_KR
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		

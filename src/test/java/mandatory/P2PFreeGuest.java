@@ -40,8 +40,6 @@ public class P2PFreeGuest {
 	@Parameters({"browser"})
 	@BeforeClass(alwaysRun = true)
 	public void setUp(ITestContext context, String browsertype) throws Exception {
-	
-		comm.setDriverProperty(browsertype);
 
 		//lang=en_US, ko_KR
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
