@@ -25,8 +25,7 @@ public class Login {
 	public void setUp(ITestContext context, String browsertype) throws Exception {
 	
 		CommonValues comm = new CommonValues();
-		comm.setDriverProperty(browsertype);
-
+		
 		driver = comm.setDriver(driver, browsertype, "lang=en_US", true);
 
 		context.setAttribute("webDriver", driver);

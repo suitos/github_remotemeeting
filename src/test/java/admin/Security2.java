@@ -76,7 +76,6 @@ public class Security2 {
 	public void setUp(ITestContext context, String browsertype) throws Exception {
 
 		CommonValues comm = new CommonValues();
-		comm.setDriverProperty(browsertype);
 
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		driver_guest = comm.setDriver(driver_guest, browsertype, "lang=ko_KR", true);

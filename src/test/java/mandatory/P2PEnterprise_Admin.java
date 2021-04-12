@@ -45,8 +45,6 @@ public class P2PEnterprise_Admin {
 			user1[1] = "자동화2";
 		} 
 		
-		comm.setDriverProperty(browsertype);
-
 		//lang=en_US, ko_KR
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		

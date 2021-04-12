@@ -105,8 +105,7 @@ public class Users2 {
 	public void setUp(ITestContext context, String browsertype) throws Exception {
 	
 		CommonValues comm = new CommonValues();
-		comm.setDriverProperty(browsertype);
-
+		
 		driver = comm.setDriver(driver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", driver);
 		

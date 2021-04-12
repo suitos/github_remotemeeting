@@ -68,8 +68,6 @@ public class MobileFree {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
 		androidDriver2 = commA.setAndroidDriver(1,true);
-		
-		comm.setDriverProperty(browsertype);
 
 		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 		

@@ -110,8 +110,6 @@ public class MobileShare {
 	public void setUp(ITestContext context, String browsertype) throws Exception {
 		
 		androidDriver = commA.setAndroidDriver(0,true);
-		
-		comm.setDriverProperty(browsertype);
 
 		chromeDriver = comm.setDriver(chromeDriver, browsertype, "lang=ko_KR", true);
 		context.setAttribute("webDriver", chromeDriver);
