@@ -5,6 +5,7 @@
   <listeners>
        <listener class-name="mandatory.TestListener"/>
   </listeners>
+  
 
   <test name="Ready">
   <parameter name="pkgname" value="mandatory"/>
@@ -15,8 +16,8 @@
       </methods>
     </class>
     </classes>
-    
   </test>  
+ 
   <test name="mandatory.Free">
     <classes>
       <class name="mandatory.Free"/>
@@ -26,6 +27,12 @@
   <test name="mandatory.P2PFree">
     <classes>
       <class name="mandatory.P2PFree"/>
+    </classes>
+  </test> <!-- Test -->
+  
+  <test name="mandatory.P2PFree2">
+    <classes>
+      <class name="mandatory.P2PFree2"/>
     </classes>
   </test> <!-- Test -->
   
@@ -46,5 +53,23 @@
       <class name="mandatory.P2PEnterprise_Mode"/>
     </classes>
   </test> <!-- Test -->
+  
+  <test name="mandatory.P2PEnterprise_Admin">
+    <classes>
+      <class name="mandatory.P2PEnterprise_Admin"/>
+    </classes>
+  </test>
+  
+  <test name="mandatory.P2PFree3">
+    <classes>
+      <class name="mandatory.P2PFree3"/>
+    </classes>
+  </test>
+  
+  <test name="mandatory.P2PFreeGuest">
+    <classes>
+      <class name="mandatory.P2PFreeGuest"/>
+    </classes>
+  </test>
   
 </suite> <!-- Suite -->

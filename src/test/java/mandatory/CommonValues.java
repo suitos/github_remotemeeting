@@ -1,6 +1,9 @@
 package mandatory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
@@ -23,14 +27,15 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import io.github.bonigarcia.wdm.WebDriverManager;
+
 public class CommonValues {
-	public static final String WEB_CHROME_DRIVER_PATH = System.getProperty("user.dir") + "/driver/chromedriver.exe";
-	public static final String WEB_FIREFOX_DRIVER_PATH = System.getProperty("user.dir") + "/driver/geckodriver.exe";
-	public static final String WEB_EDGE_DRIVER_PATH = System.getProperty("user.dir") + "/driver/msedgedriver.exe";
+	
 	public static final String WEB_FIREFOX_DRIVER_LINUX_PATH = "/tools/webdriver/geckodriver";
 	
 	public static boolean FOR_JENKINS = true;
@@ -40,6 +45,8 @@ public class CommonValues {
 	public static String MEETING_URL_ST= "https://st.remotemeeting.com";
 	public static String MEETING_URL_REAL6= "https://www6.remotemeeting.com";
 	public static String MEETING_URL = (System.getProperty("server")==null)||(System.getProperty("server").contains("st"))?MEETING_URL_ST:System.getProperty("server");
+	
+	public static String BROWSER = (System.getProperty("browser")==null)||(System.getProperty("browser").contains("Beta"))?"Beta":System.getProperty("browser");
 	
 	public static String ADMEMAIL = "rmrsupadm@gmail.com";
 	public static String ADMEMAIL2 = "rmrsup2@gmail.com"; //생성, 삭제용. 
@@ -187,30 +194,55 @@ public class CommonValues {
 
 	public String roomCode = "";
 	
-	public void setDriverProperty(String browser) {
-		String os = System.getProperty("os.name").toLowerCase();
-		if (browser.contains("Chrome")) {
-			if (os.contains("mac")) {
-				 String path = System.getenv("DRIVER_HOME") + "/chromedriver";
-				 System.setProperty("webdriver.chrome.driver", path);
-			} else {
-				System.setProperty("webdriver.chrome.driver", CommonValues.WEB_CHROME_DRIVER_PATH);
-			}
-		} else if(browser.contains("Edge")) {
-			if (os.contains("mac")) {
-				 String path = System.getenv("DRIVER_HOME") + "/msedgedriver";
-				 System.setProperty("webdriver.edge.driver", path);
-			} else if (os.contains("window")) {
-				System.setProperty("webdriver.edge.driver", CommonValues.WEB_EDGE_DRIVER_PATH);
-			}
-		} else {
-			System.setProperty("webdriver.gecko.driver", CommonValues.WEB_FIREFOX_DRIVER_PATH);
+	public String version() throws Exception {
+		String cmd = "wmic datafile where name=\"C:\\\\Program Files\\\\Google\\\\Chrome Beta\\\\Application\\\\chrome.exe\" get Version /value";
+		int counter = 0;
+		try {
+			Process p = Runtime.getRuntime().exec(cmd);
+			
+			p.waitFor();
+			
+			BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
+	        String line;
+	        
+	        while((line = r.readLine()) != null) {
+	            counter++;
+	            if(counter == 5)
+	            {
+	            	return line;
+	            }
+	        }  
+			return line;
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
 	
-	public WebDriver setDriver(WebDriver driver, String browser, String lang, boolean presenter) {
+	public WebDriver setDriver(WebDriver driver, String browser, String lang, boolean presenter) throws Exception {
 		if (browser.contains("Chrome")) {
+			
 			ChromeOptions options = new ChromeOptions();
+			
+			if(browser.contains("Beta")) {
+				
+				System.out.println(version().substring(version().lastIndexOf("=")+1));
+				
+				//크롬베타 버전 앞단만 가져옵니다
+				String BetaFullVersion = version().substring(version().lastIndexOf("=")+1);
+				String[] Betaversion = BetaFullVersion.split("[.]");
+				System.out.println(Betaversion[0] + "." + Betaversion[1] + "." + Betaversion[2] );
+				
+				
+				WebDriverManager.chromedriver().clearResolutionCache().clearDriverCache().driverVersion(Betaversion[0] + "." + Betaversion[1] + "." + Betaversion[2]).setup();
+				options.setBinary("C:\\Program Files\\Google\\Chrome Beta\\Application\\chrome.exe");
+				
+			} else {
+				WebDriverManager.chromedriver().clearResolutionCache().clearDriverCache().setup();
+				
+		    }
+			
 		    options.addArguments(lang);
 		    //options.addArguments("headless");
 		    options.addArguments("disable-gpu");
@@ -225,7 +257,7 @@ public class CommonValues {
 		    //dpi조정
 		    options.addArguments("force-device-scale-factor=0.75");
 		    options.addArguments("high-dpi-support=0.75");
-		   
+		    
 		    options.addExtensions(new File(CommonValues.TESTFILE_PATH + "meetingcapture.crx"));
 		    
 		    DesiredCapabilities dc = new DesiredCapabilities();
@@ -251,8 +283,16 @@ public class CommonValues {
 				options.setExperimentalOption("prefs", prefs);
 				
 		    }
+		    
 	        driver = new ChromeDriver(options);
+	        
+	        Capabilities cap = ((RemoteWebDriver) driver).getCapabilities();
+		    System.out.println("Browser version is : "+ cap.getVersion());
+		    
 		} else if (browser.contains("Edge")) {
+			
+			WebDriverManager.edgedriver().setup();
+			
 			EdgeOptions options = new EdgeOptions();
 
 			//options.addArguments(lang);
@@ -291,7 +331,7 @@ public class CommonValues {
 		return driver;
 	}
 	
-	public WebDriver setDriver(WebDriver driver, String browser, String lang) {
+	public WebDriver setDriver(WebDriver driver, String browser, String lang) throws Exception {
 		driver = setDriver(driver, browser, lang, false);
 		return driver;
 	}
